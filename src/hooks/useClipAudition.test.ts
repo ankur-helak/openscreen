@@ -17,6 +17,7 @@ class FakeAudioContext {
 	destination = {};
 	closed = false;
 	created: FakeBufferSource[] = [];
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op async mock
 	resume = vi.fn(async () => {});
 	constructor() {
 		FakeAudioContext.instances.push(this);

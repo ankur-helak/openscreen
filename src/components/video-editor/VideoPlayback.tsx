@@ -398,6 +398,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 		});
 
 		// Mute the source narration whenever voiceover replaces it.
+		// biome-ignore lint/correctness/useExhaustiveDependencies: videoReady re-runs this so mute applies once the <video> element mounts, not only when voiceoverEnabled changes
 		useEffect(() => {
 			const video = videoRef.current;
 			if (video) video.muted = voiceoverEnabled;
