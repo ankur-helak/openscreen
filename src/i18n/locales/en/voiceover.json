@@ -24,5 +24,8 @@
 	"transcribing": "Transcribing… the script will be ready when the transcript finishes.",
 	"noSegments": "No script yet. Reset from transcript to get started.",
 	"rowHint": "Enable voiceover to see generated narration here",
-	"trimmedTitle": "This clip's words fall in a trimmed region and won't play"
+	"trimmedTitle": "This clip's words fall in a trimmed region and won't play",
+	"export": {
+		"noClipsWarning": "Voiceover is on but no segments are generated yet — exporting the video without narration."
+	}
 }

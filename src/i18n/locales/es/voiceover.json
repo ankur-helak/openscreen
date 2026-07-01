@@ -24,5 +24,8 @@
 	"transcribing": "Transcribiendo… el guion estará listo cuando termine la transcripción.",
 	"noSegments": "Aún no hay guion. Restablece desde la transcripción para empezar.",
 	"rowHint": "Activa la voz en off para ver aquí la narración generada",
-	"trimmedTitle": "Las palabras de este clip caen en una región recortada y no se reproducirán"
+	"trimmedTitle": "Las palabras de este clip caen en una región recortada y no se reproducirán",
+	"export": {
+		"noClipsWarning": "La voz en off está activada pero aún no hay segmentos generados: se exportará el vídeo sin narración."
+	}
 }

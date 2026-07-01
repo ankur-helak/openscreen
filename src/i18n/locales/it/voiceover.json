@@ -24,5 +24,8 @@
 	"transcribing": "Trascrizione… il copione sarà pronto al termine della trascrizione.",
 	"noSegments": "Ancora nessun copione. Ripristina dalla trascrizione per iniziare.",
 	"rowHint": "Attiva la voce fuori campo per vedere qui la narrazione generata",
-	"trimmedTitle": "Le parole di questa clip ricadono in una regione tagliata e non verranno riprodotte"
+	"trimmedTitle": "Le parole di questa clip ricadono in una regione tagliata e non verranno riprodotte",
+	"export": {
+		"noClipsWarning": "La voce fuori campo è attiva ma non è stato ancora generato alcun segmento: il video verrà esportato senza narrazione."
+	}
 }

@@ -24,5 +24,8 @@
 	"transcribing": "Transkript oluşturuluyor… transkript bitince metin hazır olacak.",
 	"noSegments": "Henüz metin yok. Başlamak için transkriptten sıfırlayın.",
 	"rowHint": "Üretilen anlatımı burada görmek için seslendirmeyi etkinleştirin",
-	"trimmedTitle": "Bu klibin sözcükleri kırpılmış bir bölgeye denk geliyor ve çalınmayacak"
+	"trimmedTitle": "Bu klibin sözcükleri kırpılmış bir bölgeye denk geliyor ve çalınmayacak",
+	"export": {
+		"noClipsWarning": "Seslendirme açık ama henüz hiç segment üretilmedi — video, anlatım olmadan dışa aktarılacak."
+	}
 }

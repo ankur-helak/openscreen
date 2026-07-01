@@ -24,5 +24,8 @@
 	"transcribing": "Transcription… le script sera prêt une fois la transcription terminée.",
 	"noSegments": "Pas encore de script. Réinitialisez depuis la transcription pour commencer.",
 	"rowHint": "Activez la voix off pour voir ici la narration générée",
-	"trimmedTitle": "Les mots de ce clip se trouvent dans une région coupée et ne seront pas lus"
+	"trimmedTitle": "Les mots de ce clip se trouvent dans une région coupée et ne seront pas lus",
+	"export": {
+		"noClipsWarning": "La voix off est activée mais aucun segment n'est encore généré : la vidéo sera exportée sans narration."
+	}
 }

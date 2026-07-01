@@ -24,5 +24,8 @@
 	"transcribing": "Transcrevendo… o roteiro ficará pronto quando a transcrição terminar.",
 	"noSegments": "Ainda sem roteiro. Redefina a partir da transcrição para começar.",
 	"rowHint": "Ative a narração para ver aqui a narração gerada",
-	"trimmedTitle": "As palavras deste clipe estão em uma região cortada e não serão reproduzidas"
+	"trimmedTitle": "As palavras deste clipe estão em uma região cortada e não serão reproduzidas",
+	"export": {
+		"noClipsWarning": "A narração está ativada, mas nenhum segmento foi gerado ainda — o vídeo será exportado sem narração."
+	}
 }

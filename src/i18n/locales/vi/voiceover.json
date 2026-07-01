@@ -24,5 +24,8 @@
 	"transcribing": "Đang chép lời… kịch bản sẽ sẵn sàng khi chép lời hoàn tất.",
 	"noSegments": "Chưa có kịch bản. Đặt lại từ bản chép lời để bắt đầu.",
 	"rowHint": "Bật lồng tiếng để xem phần lồng tiếng đã tạo ở đây",
-	"trimmedTitle": "Lời của đoạn này nằm trong vùng đã cắt và sẽ không được phát"
+	"trimmedTitle": "Lời của đoạn này nằm trong vùng đã cắt và sẽ không được phát",
+	"export": {
+		"noClipsWarning": "Lồng tiếng đang bật nhưng chưa có đoạn nào được tạo — video sẽ được xuất mà không có lời tường thuật."
+	}
 }
