@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -27,6 +28,21 @@ import {
 } from "./windows";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// [dev-only] Action logger — records user interactions to a gitignored JSONL file for
+// debugging. Entirely self-contained under devtools/action-logger/ (gitignored); this block
+// is the only tracked hook. Runtime-required (not statically imported) so the packaged app
+// and fresh clones without the folder are unaffected. Registered before any window is created
+// so it can hook the editor window on startup.
+if (!app.isPackaged) {
+	try {
+		const devRequire = createRequire(import.meta.url);
+		const actionLoggerPath = path.join(app.getAppPath(), "devtools", "action-logger", "main.cjs");
+		devRequire(actionLoggerPath).install({ app, BrowserWindow });
+	} catch (err) {
+		console.warn("[action-logger] disabled:", err instanceof Error ? err.message : String(err));
+	}
+}
 
 // Use Screen & System Audio Recording permissions instead of the CoreAudio Tap API on macOS.
 // Tap needs NSAudioCaptureUsageDescription in the parent app's Info.plist, which breaks when
