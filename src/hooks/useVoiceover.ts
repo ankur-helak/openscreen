@@ -87,7 +87,11 @@ export function useVoiceover(params: {
 				speed: configRef.current.speed,
 			});
 			const durationMs = durationMsOf(pcm.length, sampleRate);
-			await nativeBridgeClient.voiceover.putClip(key, pcm.buffer as ArrayBuffer, sampleRate);
+			const pcmBuffer = pcm.buffer.slice(
+				pcm.byteOffset,
+				pcm.byteOffset + pcm.byteLength,
+			) as ArrayBuffer;
+			await nativeBridgeClient.voiceover.putClip(key, pcmBuffer, sampleRate);
 			setClips((prev) => ({ ...prev, [key]: { pcm, sampleRate, durationMs } }));
 			setStatuses((prev) => ({ ...prev, [id]: { state: "ready", audioKey: key, durationMs } }));
 		} catch (error) {

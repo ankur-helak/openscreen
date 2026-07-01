@@ -111,4 +111,26 @@ describe("useVoiceover", () => {
 		});
 		expect(synthSpy).not.toHaveBeenCalled();
 	});
+
+	it("generateSegment sends only the view's bytes to putClip (not the whole backing buffer)", async () => {
+		const backing = new Float32Array(100); // 400-byte buffer
+		const view = backing.subarray(10, 34); // 24 samples → 96 bytes, byteOffset 40
+		const provider = fakeProvider();
+		vi.spyOn(provider, "synthesize").mockResolvedValue({ pcm: view, sampleRate: 24000 });
+		const config = {
+			...DEFAULT_VOICEOVER_CONFIG,
+			segments: [{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 1000, text: "Hi." }],
+		};
+		const { result } = renderHook(() =>
+			useVoiceover({ config, transcript, onChange: vi.fn(), provider }),
+		);
+		await act(async () => {
+			await result.current.generateSegment("vo-1");
+		});
+		const putArgs = (nativeBridgeClient.voiceover.putClip as ReturnType<typeof vi.fn>).mock
+			.calls[0];
+		const sentBuffer = putArgs[1] as ArrayBuffer;
+		expect(sentBuffer.byteLength).toBe(view.byteLength); // 96, NOT backing.buffer.byteLength (400)
+		expect(Array.from(new Float32Array(sentBuffer))).toEqual(Array.from(view));
+	});
 });
