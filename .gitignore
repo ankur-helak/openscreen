@@ -69,3 +69,6 @@ result-*
 
 # [dev-only] Action logger — self-contained debug tool + its JSONL log output (never committed)
 /devtools/
+
+# vitest browser test attachments (screenshots/junk)
+.vitest-attachments/
