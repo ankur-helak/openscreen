@@ -24,6 +24,7 @@ import { useI18n, useScopedT } from "@/contexts/I18nContext";
 import { useShortcuts } from "@/contexts/ShortcutsContext";
 import { INITIAL_EDITOR_STATE, useEditorHistory } from "@/hooks/useEditorHistory";
 import { useTranscript } from "@/hooks/useTranscript";
+import { useVoiceover } from "@/hooks/useVoiceover";
 import { type Locale } from "@/i18n/config";
 import { getAvailableLocales, getLocaleName } from "@/i18n/loader";
 import {
@@ -111,6 +112,7 @@ import {
 } from "./types";
 import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 import VideoPlayback, { VideoPlaybackRef } from "./VideoPlayback";
+import type { VoiceoverPanelProps } from "./VoiceoverPanel";
 
 /** Single Sonner slot so auto-caption phases update in place instead of stacking. */
 const AUTO_CAPTION_PROGRESS_TOAST_ID = "auto-caption-progress";
@@ -329,6 +331,28 @@ export default function VideoEditor() {
 	void transcriptStatus;
 	const transcriptStatusRef = useRef(transcriptStatus);
 	transcriptStatusRef.current = transcriptStatus;
+
+	const [selectedVoiceoverSegmentId, setSelectedVoiceoverSegmentId] = useState<string | null>(null);
+
+	const {
+		statuses: voiceoverStatuses,
+		clips: voiceoverClips,
+		audioKeyFor: voiceoverAudioKeyFor,
+		seedFromTranscript: seedVoiceover,
+		generateSegment: generateVoiceoverSegment,
+		generateAll: generateAllVoiceover,
+	} = useVoiceover({
+		config: voiceover,
+		transcript,
+		onChange: (updater) => pushState((prev) => ({ voiceover: updater(prev.voiceover) })),
+	});
+
+	// Seed the script the first time voiceover is enabled with an empty script and a ready transcript.
+	useEffect(() => {
+		if (voiceover.enabled && voiceover.segments.length === 0 && transcript) {
+			seedVoiceover();
+		}
+	}, [voiceover.enabled, voiceover.segments.length, transcript, seedVoiceover]);
 	const isAutoCaptioningRef = useRef(false);
 	const [isAutoCaptioning, setIsAutoCaptioning] = useState(false);
 	const [showAutoCaptionsDialog, setShowAutoCaptionsDialog] = useState(false);
@@ -1028,6 +1052,7 @@ export default function VideoEditor() {
 			setSelectedSpeedId(null);
 			setSelectedAnnotationId(null);
 			setSelectedBlurId(null);
+			setSelectedVoiceoverSegmentId(null);
 		}
 	}, []);
 
@@ -1038,6 +1063,7 @@ export default function VideoEditor() {
 			setSelectedSpeedId(null);
 			setSelectedAnnotationId(null);
 			setSelectedBlurId(null);
+			setSelectedVoiceoverSegmentId(null);
 		}
 	}, []);
 
@@ -1048,6 +1074,7 @@ export default function VideoEditor() {
 			setSelectedTrimId(null);
 			setSelectedSpeedId(null);
 			setSelectedBlurId(null);
+			setSelectedVoiceoverSegmentId(null);
 		}
 	}, []);
 
@@ -1058,6 +1085,7 @@ export default function VideoEditor() {
 			setSelectedTrimId(null);
 			setSelectedAnnotationId(null);
 			setSelectedSpeedId(null);
+			setSelectedVoiceoverSegmentId(null);
 		}
 	}, []);
 
@@ -1338,7 +1366,46 @@ export default function VideoEditor() {
 			setSelectedTrimId(null);
 			setSelectedAnnotationId(null);
 			setSelectedBlurId(null);
+			setSelectedVoiceoverSegmentId(null);
 		}
+	}, []);
+
+	// Voiceover config mutations: discrete changes push undo entries; live drags/typing
+	// use updateState + commitState so the slider/text field don't spam the history.
+	const handleVoiceoverToggle = useCallback(
+		(enabled: boolean) => pushState((prev) => ({ voiceover: { ...prev.voiceover, enabled } })),
+		[pushState],
+	);
+	const handleVoiceoverVoiceChange = useCallback(
+		(voice: string) => pushState((prev) => ({ voiceover: { ...prev.voiceover, voice } })),
+		[pushState],
+	);
+	const handleVoiceoverSpeedChange = useCallback(
+		(speed: number) => updateState((prev) => ({ voiceover: { ...prev.voiceover, speed } })),
+		[updateState],
+	);
+	const handleVoiceoverSegmentTextChange = useCallback(
+		(id: string, text: string) =>
+			updateState((prev) => ({
+				voiceover: {
+					...prev.voiceover,
+					segments: prev.voiceover.segments.map((s) => (s.id === id ? { ...s, text } : s)),
+				},
+			})),
+		[updateState],
+	);
+	const handleResetVoiceoverScript = useCallback(() => {
+		setSelectedVoiceoverSegmentId(null);
+		pushState((prev) => ({ voiceover: { ...prev.voiceover, segments: [] } }));
+	}, [pushState]);
+	const handleSelectVoiceoverSegment = useCallback((id: string) => {
+		// Mirror the handleSelectZoom/Trim/etc. pattern: set own selection, null the siblings.
+		setSelectedVoiceoverSegmentId(id);
+		setSelectedZoomId(null);
+		setSelectedTrimId(null);
+		setSelectedSpeedId(null);
+		setSelectedAnnotationId(null);
+		setSelectedBlurId(null);
 	}, []);
 
 	const handleSpeedAdded = useCallback(
@@ -2356,6 +2423,28 @@ export default function VideoEditor() {
 		}
 	}, [exportError, editorState]);
 
+	const voiceoverPanelProps: VoiceoverPanelProps = {
+		config: voiceover,
+		statuses: voiceoverStatuses,
+		clips: voiceoverClips,
+		audioKeyFor: voiceoverAudioKeyFor,
+		// `transcriptStatus` is a discriminated union (`{ state: "ready" | ... }`), not a string;
+		// treat an existing script as ready too so seeded segments stay editable after a re-transcribe.
+		transcriptReady: transcriptStatus.state === "ready" || voiceover.segments.length > 0,
+		hasTranscript: transcript != null,
+		selectedSegmentId: selectedVoiceoverSegmentId,
+		onToggleEnabled: handleVoiceoverToggle,
+		onVoiceChange: handleVoiceoverVoiceChange,
+		onSpeedChange: handleVoiceoverSpeedChange,
+		onSpeedCommit: commitState,
+		onSegmentTextChange: handleVoiceoverSegmentTextChange,
+		onSegmentTextCommit: commitState,
+		onGenerateSegment: (id) => void generateVoiceoverSegment(id),
+		onGenerateAll: () => void generateAllVoiceover(),
+		onResetScript: handleResetVoiceoverScript,
+		onSelectSegment: handleSelectVoiceoverSegment,
+	};
+
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center h-screen bg-background">
@@ -2844,6 +2933,9 @@ export default function VideoEditor() {
 											hasNativeCursorRecordingData(cursorRecordingData)
 										}
 										showCursorSettings={showCursorSettings}
+										voiceoverPanelProps={voiceoverPanelProps}
+										selectedVoiceoverSegmentId={selectedVoiceoverSegmentId}
+										onClearVoiceoverSelection={() => setSelectedVoiceoverSegmentId(null)}
 									/>
 								</div>
 							</div>
@@ -2907,6 +2999,11 @@ export default function VideoEditor() {
 									}
 									videoUrl={videoPath ?? undefined}
 									showTrimWaveform={showTrimWaveform}
+									voiceoverEnabled={voiceover.enabled}
+									voiceoverSegments={voiceover.segments}
+									voiceoverStatuses={voiceoverStatuses}
+									selectedVoiceoverSegmentId={selectedVoiceoverSegmentId}
+									onSelectVoiceoverSegment={handleSelectVoiceoverSegment}
 									captionsLabel={t("autoCaptions.button")}
 									isGeneratingCaptions={isAutoCaptioning}
 									onGenerateCaptions={() => {
