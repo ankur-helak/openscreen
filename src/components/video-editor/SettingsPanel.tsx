@@ -1,5 +1,6 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
+	AudioLines,
 	Brackets,
 	Bug,
 	Crop,
@@ -95,6 +96,7 @@ import {
 	SPEED_OPTIONS,
 	ZOOM_DEPTH_SCALES,
 } from "./types";
+import { VoiceoverPanel, type VoiceoverPanelProps } from "./VoiceoverPanel";
 import { getFocusBoundsForScale } from "./videoPlayback/focusUtils";
 
 function CustomSpeedInput({
@@ -348,6 +350,9 @@ interface SettingsPanelProps {
 	onCursorThemeChange?: (theme: string) => void;
 	hasCursorData?: boolean;
 	showCursorSettings?: boolean;
+	voiceoverPanelProps?: VoiceoverPanelProps;
+	selectedVoiceoverSegmentId?: string | null;
+	onClearVoiceoverSelection?: () => void;
 }
 
 export default SettingsPanel;
@@ -361,7 +366,14 @@ const ZOOM_DEPTH_OPTIONS: Array<{ depth: ZoomDepth; label: string }> = [
 	{ depth: 6, label: "5×" },
 ];
 
-type SettingsPanelMode = "background" | "effects" | "layout" | "cursor" | "export" | "timeline";
+type SettingsPanelMode =
+	| "background"
+	| "effects"
+	| "layout"
+	| "cursor"
+	| "export"
+	| "timeline"
+	| "voiceover";
 
 const MP4_EXPORT_SHORT_SIDES = {
 	medium: 720,
@@ -484,8 +496,12 @@ export function SettingsPanel({
 	onCursorThemeChange,
 	hasCursorData = false,
 	showCursorSettings = true,
+	voiceoverPanelProps,
+	selectedVoiceoverSegmentId,
+	onClearVoiceoverSelection,
 }: SettingsPanelProps) {
 	const t = useScopedT("settings");
+	const vt = useScopedT("voiceover");
 	const [activePanelMode, setActivePanelMode] = useState<SettingsPanelMode>("background");
 	const sourceDimensions = formatSourceDimensions(videoElement, cropRegion);
 	// Resolved URLs are for DOM rendering only. We persist the canonical
@@ -641,6 +657,9 @@ export function SettingsPanel({
 	const trimEnabled = Boolean(selectedTrimId);
 	const hasTimelineSelection = Boolean(selectedZoomId || selectedTrimId || selectedSpeedId);
 	const hasCursorPanel = showCursorSettings && hasCursorData;
+	const showVoiceoverPanel =
+		(activePanelMode === "voiceover" && !hasTimelineSelection) ||
+		selectedVoiceoverSegmentId != null;
 	const panelModes: Array<{
 		id: SettingsPanelMode;
 		label: string;
@@ -660,22 +679,25 @@ export function SettingsPanel({
 					},
 				]
 			: []),
+		{ id: "voiceover", label: vt("navLabel"), icon: AudioLines },
 	];
 	const exportPanelMode = {
 		id: "export" as const,
 		label: exportFormat === "gif" ? t("export.gifButton") : t("export.videoButton"),
 		icon: Download,
 	};
-	const activeModeLabel = hasTimelineSelection
-		? selectedZoomId
-			? t("zoom.level")
-			: selectedSpeedId
-				? t("speed.playbackSpeed")
-				: t("trim.deleteRegion")
-		: activePanelMode === "timeline"
-			? t("timeline.title")
-			: ([...panelModes, exportPanelMode].find((mode) => mode.id === activePanelMode)?.label ??
-				t("background.title"));
+	const activeModeLabel = selectedVoiceoverSegmentId
+		? vt("navLabel")
+		: hasTimelineSelection
+			? selectedZoomId
+				? t("zoom.level")
+				: selectedSpeedId
+					? t("speed.playbackSpeed")
+					: t("trim.deleteRegion")
+			: activePanelMode === "timeline"
+				? t("timeline.title")
+				: ([...panelModes, exportPanelMode].find((mode) => mode.id === activePanelMode)?.label ??
+					t("background.title"));
 
 	const handleDeleteClick = () => {
 		if (selectedZoomId && onZoomDelete) {
@@ -844,6 +866,7 @@ export function SettingsPanel({
 								disabled={mode.disabled}
 								onClick={() => {
 									if (mode.id === "layout" && mode.disabled) return;
+									onClearVoiceoverSelection?.();
 									setActivePanelMode(mode.id);
 								}}
 								className={cn(
@@ -890,6 +913,7 @@ export function SettingsPanel({
 						<span className="text-sm font-semibold text-slate-100">{activeModeLabel}</span>
 						<KeyboardShortcutsHelp />
 					</div>
+					{showVoiceoverPanel && voiceoverPanelProps && <VoiceoverPanel {...voiceoverPanelProps} />}
 					{zoomEnabled && (
 						<div className="editor-panel-section mb-3 space-y-3 px-1">
 							<div className="flex items-center justify-between">
