@@ -37,6 +37,12 @@ jobs:
           path: caption-assets
           key: caption-assets-${{ hashFiles('scripts/fetch-caption-model.mjs') }}
 
+      - name: Cache TTS assets
+        uses: actions/cache@v4
+        with:
+          path: tts-assets
+          key: tts-assets-${{ hashFiles('scripts/fetch-tts-model.mjs') }}
+
       - name: Build Windows app
         run: npm run build:win
         env:
@@ -93,6 +99,12 @@ jobs:
         with:
           path: caption-assets
           key: caption-assets-${{ hashFiles('scripts/fetch-caption-model.mjs') }}
+
+      - name: Cache TTS assets
+        uses: actions/cache@v4
+        with:
+          path: tts-assets
+          key: tts-assets-${{ hashFiles('scripts/fetch-tts-model.mjs') }}
 
       # ─── Import Code Signing Certificate ──────────────────────
       # This is the KEY step that makes CI signing work.
@@ -279,6 +291,12 @@ jobs:
         with:
           path: caption-assets
           key: caption-assets-${{ hashFiles('scripts/fetch-caption-model.mjs') }}
+
+      - name: Cache TTS assets
+        uses: actions/cache@v4
+        with:
+          path: tts-assets
+          key: tts-assets-${{ hashFiles('scripts/fetch-tts-model.mjs') }}
 
       - name: Build Linux app
         run: npm run build:linux

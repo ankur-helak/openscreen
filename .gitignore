@@ -67,6 +67,9 @@ result-*
 # Auto-caption model + ORT wasm — regenerated at build by scripts/fetch-caption-model.mjs
 /caption-assets/
 
+# TTS model + ORT wasm — regenerated at build by scripts/fetch-tts-model.mjs
+/tts-assets/
+
 # [dev-only] Action logger — self-contained debug tool + its JSONL log output (never committed)
 /devtools/
 
