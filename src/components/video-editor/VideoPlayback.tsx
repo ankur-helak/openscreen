@@ -18,6 +18,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { useVoiceoverPlayback } from "@/hooks/useVoiceoverPlayback";
 import {
 	getWebcamLayoutCssBoxShadow,
 	reactiveWebcamScale,
@@ -39,6 +40,7 @@ import {
 	resolveInterpolatedNativeCursorFrame,
 	resolveNativeCursorRenderAsset,
 } from "@/lib/cursor/nativeCursor";
+import type { PlacedClip } from "@/lib/voiceover/layout";
 import { classifyWallpaper, DEFAULT_WALLPAPER, resolveImageWallpaperUrl } from "@/lib/wallpaper";
 import { getCssClipPath } from "@/lib/webcamMaskShapes";
 import type { CursorRecordingData } from "@/native/contracts";
@@ -148,6 +150,9 @@ interface VideoPlaybackProps {
 	// Render the selected zoom at the playhead even while paused, so the editor can
 	// preview the effect without leaving the focus-edit view.
 	isPreviewingZoom?: boolean;
+	voiceoverEnabled?: boolean;
+	voiceoverPlacedClips?: PlacedClip[];
+	voiceoverClipPcmByKey?: Record<string, { pcm: Float32Array; sampleRate: number }>;
 }
 
 export interface VideoPlaybackRef {
@@ -250,6 +255,9 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			trimRegions = [],
 			speedRegions = [],
 			aspectRatio,
+			voiceoverEnabled = false,
+			voiceoverPlacedClips = [],
+			voiceoverClipPcmByKey = {},
 			cursorRecordingData,
 			annotationRegions = [],
 			selectedAnnotationId,
@@ -377,6 +385,23 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			() => hasNativeCursorRecordingData(cursorRecordingData),
 			[cursorRecordingData],
 		);
+
+		useVoiceoverPlayback({
+			video: videoReady ? videoRef.current : null,
+			enabled: voiceoverEnabled,
+			isPlaying,
+			isScrubbing,
+			placedClips: voiceoverPlacedClips,
+			clipPcmByKey: voiceoverClipPcmByKey,
+			trims: trimRegions,
+			speedRegions,
+		});
+
+		// Mute the source narration whenever voiceover replaces it.
+		useEffect(() => {
+			const video = videoRef.current;
+			if (video) video.muted = voiceoverEnabled;
+		}, [voiceoverEnabled, videoReady]);
 
 		const syncResolvedDuration = useCallback(
 			(video: HTMLVideoElement) => {
@@ -628,7 +653,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 						throw err;
 					});
 					const supplementalAudio = supplementalAudioRef.current;
-					if (supplementalAudio) {
+					if (supplementalAudio && !voiceoverEnabled) {
 						supplementalAudio.currentTime = vid.currentTime;
 						supplementalAudio.playbackRate = vid.playbackRate;
 						await supplementalAudio.play().catch(() => {
@@ -1131,6 +1156,10 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			if (!video || !supplementalAudio || !supplementalAudioPath) {
 				return;
 			}
+			if (voiceoverEnabled) {
+				supplementalAudio.pause();
+				return;
+			}
 
 			const activeSpeedRegion =
 				speedRegions.find(
@@ -1153,7 +1182,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			supplementalAudio.play().catch(() => {
 				// Keep video playback running even if supplemental preview audio is unavailable.
 			});
-		}, [currentTime, isPlaying, speedRegions, supplementalAudioPath]);
+		}, [currentTime, isPlaying, speedRegions, supplementalAudioPath, voiceoverEnabled]);
 
 		useEffect(() => {
 			if (!pixiReady || !videoReady) return;
