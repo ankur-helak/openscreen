@@ -2334,7 +2334,7 @@ export default function VideoEditor() {
 				setIsAutoCaptioning(false);
 			}
 		},
-		[videoPath, trimRegions, pushState, t],
+		[ensureTranscript, videoPath, trimRegions, pushState, t],
 	);
 
 	const handleSaveDiagnostic = useCallback(async () => {
