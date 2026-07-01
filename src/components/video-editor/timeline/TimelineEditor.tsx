@@ -27,6 +27,7 @@ import { useShortcuts } from "@/contexts/ShortcutsContext";
 import { useAudioPeaks } from "@/hooks/useAudioPeaks";
 import { matchesShortcut } from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
+import type { SegmentSynthStatus, VoiceoverSegment } from "@/lib/voiceover/types";
 import { ASPECT_RATIOS, type AspectRatio, getAspectRatioLabel } from "@/utils/aspectRatioUtils";
 import { formatShortcut } from "@/utils/platformUtils";
 import { BLUR_REGIONS_ENABLED } from "../featureFlags";
@@ -36,6 +37,7 @@ import Item from "./Item";
 import KeyframeMarkers from "./KeyframeMarkers";
 import Row from "./Row";
 import TimelineWrapper from "./TimelineWrapper";
+import { VoiceoverRow } from "./VoiceoverRow";
 
 const ZOOM_ROW_ID = "row-zoom";
 const TRIM_ROW_ID = "row-trim";
@@ -86,6 +88,11 @@ interface TimelineEditorProps {
 	onSpeedDelete?: (id: string) => void;
 	selectedSpeedId?: string | null;
 	onSelectSpeed?: (id: string | null) => void;
+	voiceoverEnabled?: boolean;
+	voiceoverSegments?: VoiceoverSegment[];
+	voiceoverStatuses?: Record<string, SegmentSynthStatus>;
+	selectedVoiceoverSegmentId?: string | null;
+	onSelectVoiceoverSegment?: (id: string) => void;
 	aspectRatio: AspectRatio;
 	onAspectRatioChange: (aspectRatio: AspectRatio) => void;
 	videoUrl?: string;
@@ -571,6 +578,12 @@ function Timeline({
 	keyframes = [],
 	videoUrl,
 	showTrimWaveform = false,
+	voiceoverEnabled,
+	voiceoverSegments,
+	voiceoverStatuses,
+	trimRegions,
+	selectedVoiceoverSegmentId,
+	onSelectVoiceoverSegment,
 }: {
 	items: TimelineRenderItem[];
 	videoDurationMs: number;
@@ -590,8 +603,15 @@ function Timeline({
 	keyframes?: { id: string; time: number }[];
 	videoUrl?: string;
 	showTrimWaveform?: boolean;
+	voiceoverEnabled?: boolean;
+	voiceoverSegments?: VoiceoverSegment[];
+	voiceoverStatuses?: Record<string, SegmentSynthStatus>;
+	trimRegions?: TrimRegion[];
+	selectedVoiceoverSegmentId?: string | null;
+	onSelectVoiceoverSegment?: (id: string) => void;
 }) {
 	const t = useScopedT("timeline");
+	const vt = useScopedT("voiceover");
 	const { setTimelineRef, style, sidebarWidth, range, pixelsToValue } = useTimelineContext();
 	const localTimelineRef = useRef<HTMLDivElement | null>(null);
 	const isScrubbingTimelineRef = useRef(false);
@@ -878,6 +898,18 @@ function Timeline({
 					</Item>
 				))}
 			</Row>
+
+			{voiceoverEnabled && (
+				<VoiceoverRow
+					segments={voiceoverSegments ?? []}
+					statuses={voiceoverStatuses ?? {}}
+					trimRegions={trimRegions ?? []}
+					selectedSegmentId={selectedVoiceoverSegmentId ?? null}
+					onSelectSegment={(id) => onSelectVoiceoverSegment?.(id)}
+					hint={vt("rowHint")}
+					trimmedTitle={vt("trimmedTitle")}
+				/>
+			)}
 		</div>
 	);
 }
@@ -921,6 +953,11 @@ export default function TimelineEditor({
 	onSpeedDelete,
 	selectedSpeedId,
 	onSelectSpeed,
+	voiceoverEnabled,
+	voiceoverSegments,
+	voiceoverStatuses,
+	selectedVoiceoverSegmentId,
+	onSelectVoiceoverSegment,
 	aspectRatio,
 	onAspectRatioChange,
 	videoUrl,
@@ -1660,6 +1697,12 @@ export default function TimelineEditor({
 						keyframes={keyframes}
 						videoUrl={videoUrl}
 						showTrimWaveform={showTrimWaveform}
+						voiceoverEnabled={voiceoverEnabled}
+						voiceoverSegments={voiceoverSegments}
+						voiceoverStatuses={voiceoverStatuses}
+						trimRegions={trimRegions}
+						selectedVoiceoverSegmentId={selectedVoiceoverSegmentId}
+						onSelectVoiceoverSegment={onSelectVoiceoverSegment}
 					/>
 				</TimelineWrapper>
 			</div>
