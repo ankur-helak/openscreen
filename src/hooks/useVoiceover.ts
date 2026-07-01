@@ -49,6 +49,7 @@ export function useVoiceover(params: {
 	const providerRef = useRef(provider);
 	providerRef.current = provider;
 	const statusesRef = useRef(statuses);
+	// Sync every render: ensures ref reflects committed state when no updater has written it.
 	statusesRef.current = statuses;
 
 	const audioKeyFor = useCallback(
@@ -84,6 +85,8 @@ export function useVoiceover(params: {
 		});
 		setStatuses((prev) => {
 			const next: Record<string, SegmentSynthStatus> = { ...prev, [id]: { state: "synthesizing" } };
+			// Write ref inside updater so same-tick re-entrant calls see pending state (double-click guard).
+			// `next` is the exact object that becomes committed state, consistent with every-render sync.
 			statusesRef.current = next;
 			return next;
 		});
@@ -115,6 +118,8 @@ export function useVoiceover(params: {
 			setStatuses((prev) => {
 				const next: Record<string, SegmentSynthStatus> = { ...prev };
 				for (const s of pending) next[s.id] = { state: "queued" };
+				// Write ref inside updater so same-tick re-entrant calls see pending state (double-click guard).
+				// `next` is the exact object that becomes committed state, consistent with every-render sync.
 				statusesRef.current = next;
 				return next;
 			});
