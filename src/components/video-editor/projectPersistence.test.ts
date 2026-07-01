@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_VOICEOVER_CONFIG } from "@/lib/voiceover/types";
+import { DEFAULT_VOICEOVER_CONFIG, VOICEOVER_ENGINE } from "@/lib/voiceover/types";
 import {
 	createProjectData,
 	createProjectSnapshot,
@@ -280,7 +280,7 @@ describe("voiceover persistence", () => {
 		const normalized = normalizeProjectEditor({
 			voiceover: {
 				enabled: true,
-				engine: "kokoro-local",
+				engine: "bogus-engine",
 				voice: "am_adam",
 				speed: 5, // out of range → clamped to 1.2
 				segments: [
@@ -290,6 +290,7 @@ describe("voiceover persistence", () => {
 			},
 		} as never);
 		expect(normalized.voiceover.enabled).toBe(true);
+		expect(normalized.voiceover.engine).toBe(VOICEOVER_ENGINE);
 		expect(normalized.voiceover.voice).toBe("am_adam");
 		expect(normalized.voiceover.speed).toBe(1.2);
 		expect(normalized.voiceover.segments).toEqual([
