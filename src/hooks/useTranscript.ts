@@ -48,6 +48,8 @@ export function useTranscript(params: {
 	// Latest trimRegions without making callbacks depend on their identity.
 	const trimRegionsRef = useRef<TrimRegion[]>(trimRegions);
 	trimRegionsRef.current = trimRegions;
+	// Guard against stale runs updating state for a previous video.
+	const currentSourceRef = useRef<string | null>(null);
 
 	const run = useCallback(
 		async (
@@ -55,10 +57,13 @@ export function useTranscript(params: {
 			source: string,
 			opts: { ignoreCache: boolean },
 		): Promise<Transcript | null> => {
+			const isCurrent = () => currentSourceRef.current === source;
+
 			if (!opts.ignoreCache) {
 				const cached = await nativeBridgeClient.transcript.getTranscript(source);
 				if (cached.success && isTranscript(cached.transcript)) {
 					const t = cached.transcript;
+					if (!isCurrent()) return null;
 					setTranscript(t.segments.length > 0 ? t : null);
 					setStatus(
 						t.segments.length > 0 ? { state: "ready", transcript: t } : { state: "no-speech" },
@@ -92,6 +97,7 @@ export function useTranscript(params: {
 				};
 				// Cache even an empty (no-speech) result so we don't re-run every load.
 				await nativeBridgeClient.transcript.putTranscript(source, built);
+				if (!isCurrent()) return null;
 				if (built.segments.length === 0) {
 					setTranscript(null);
 					setStatus({ state: "no-speech" });
@@ -103,11 +109,13 @@ export function useTranscript(params: {
 			} catch (error) {
 				if (controller.signal.aborted) return null;
 				if (error instanceof TranscriptionNoAudioError) {
+					if (!isCurrent()) return null;
 					setStatus({ state: "no-audio" });
 					return null;
 				}
 				const message = error instanceof Error ? error.message : String(error);
 				console.warn("[useTranscript] transcription failed:", message);
+				if (!isCurrent()) return null;
 				setStatus({ state: "error", message });
 				return null;
 			}
@@ -134,10 +142,12 @@ export function useTranscript(params: {
 	// Auto-run silently when the video changes.
 	useEffect(() => {
 		if (!videoUrl || !sourcePath) {
+			currentSourceRef.current = null;
 			setStatus({ state: "idle" });
 			setTranscript(null);
 			return;
 		}
+		currentSourceRef.current = sourcePath;
 		setTranscript(null);
 		void ensureTranscript();
 		return () => {
