@@ -1,0 +1,28 @@
+{
+	"navLabel": "Lồng tiếng",
+	"title": "Lồng tiếng AI",
+	"description": "Thay lời tường thuật gốc bằng một giọng nói rõ ràng được tạo ngay trên thiết bị từ bản chép lời của bạn.",
+	"enableLabel": "Bật lồng tiếng",
+	"enableHint": "Tắt âm thanh gốc và phát giọng nói được tạo ra thay thế.",
+	"voiceLabel": "Giọng",
+	"speedLabel": "Tốc độ",
+	"generateAll": "Tạo tất cả",
+	"generating": "Đang tạo… {{done}}/{{total}}",
+	"regenerate": "Tạo lại",
+	"play": "Phát",
+	"stop": "Dừng",
+	"resetScript": "Đặt lại kịch bản theo bản chép lời",
+	"textPlaceholder": "Kịch bản đoạn…",
+	"status": {
+		"idle": "Chưa tạo",
+		"queued": "Trong hàng đợi",
+		"synthesizing": "Đang tạo…",
+		"ready": "Sẵn sàng",
+		"error": "Thất bại"
+	},
+	"noTranscript": "Ghi hoặc mở một video có lời nói — kịch bản được tạo từ bản chép lời của nó.",
+	"transcribing": "Đang chép lời… kịch bản sẽ sẵn sàng khi chép lời hoàn tất.",
+	"noSegments": "Chưa có kịch bản. Đặt lại từ bản chép lời để bắt đầu.",
+	"rowHint": "Bật lồng tiếng để xem phần lồng tiếng đã tạo ở đây",
+	"trimmedTitle": "Lời của đoạn này nằm trong vùng đã cắt và sẽ không được phát"
+}

@@ -1,0 +1,28 @@
+{
+	"navLabel": "配音",
+	"title": "AI 配音",
+	"description": "以根據字幕在本機產生的清晰語音,取代原始旁白。",
+	"enableLabel": "啟用配音",
+	"enableHint": "靜音原始音訊,改為播放產生的語音。",
+	"voiceLabel": "聲音",
+	"speedLabel": "速度",
+	"generateAll": "全部產生",
+	"generating": "產生中… {{done}}/{{total}}",
+	"regenerate": "重新產生",
+	"play": "播放",
+	"stop": "停止",
+	"resetScript": "將腳本重設為字幕",
+	"textPlaceholder": "分段腳本…",
+	"status": {
+		"idle": "尚未產生",
+		"queued": "排隊中",
+		"synthesizing": "產生中…",
+		"ready": "就緒",
+		"error": "失敗"
+	},
+	"noTranscript": "錄製或開啟含語音的影片——腳本會根據其字幕產生。",
+	"transcribing": "正在產生字幕……字幕完成後腳本即可就緒。",
+	"noSegments": "尚無腳本。從字幕重設以開始。",
+	"rowHint": "啟用配音後,產生的配音會顯示在這裡",
+	"trimmedTitle": "此片段的文字位於已裁剪區域,將不會播放"
+}

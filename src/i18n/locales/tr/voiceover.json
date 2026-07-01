@@ -1,0 +1,28 @@
+{
+	"navLabel": "Seslendirme",
+	"title": "Yapay Zekâ Seslendirme",
+	"description": "Orijinal anlatımınızı, transkriptinizden cihazda üretilen temiz bir sesle değiştirin.",
+	"enableLabel": "Seslendirmeyi etkinleştir",
+	"enableHint": "Orijinal sesi kapatır ve onun yerine üretilen sesi çalar.",
+	"voiceLabel": "Ses",
+	"speedLabel": "Hız",
+	"generateAll": "Tümünü üret",
+	"generating": "Üretiliyor… {{done}}/{{total}}",
+	"regenerate": "Yeniden üret",
+	"play": "Oynat",
+	"stop": "Durdur",
+	"resetScript": "Metni transkripte sıfırla",
+	"textPlaceholder": "Segment metni…",
+	"status": {
+		"idle": "Üretilmedi",
+		"queued": "Sırada",
+		"synthesizing": "Üretiliyor…",
+		"ready": "Hazır",
+		"error": "Başarısız"
+	},
+	"noTranscript": "Konuşma içeren bir video kaydedin veya açın — metin, transkriptinden üretilir.",
+	"transcribing": "Transkript oluşturuluyor… transkript bitince metin hazır olacak.",
+	"noSegments": "Henüz metin yok. Başlamak için transkriptten sıfırlayın.",
+	"rowHint": "Üretilen anlatımı burada görmek için seslendirmeyi etkinleştirin",
+	"trimmedTitle": "Bu klibin sözcükleri kırpılmış bir bölgeye denk geliyor ve çalınmayacak"
+}

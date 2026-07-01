@@ -1,0 +1,28 @@
+{
+	"navLabel": "Voz en off",
+	"title": "Voz en off con IA",
+	"description": "Reemplaza tu narración original por una voz limpia generada en el dispositivo a partir de tu transcripción.",
+	"enableLabel": "Activar voz en off",
+	"enableHint": "Silencia el audio original y reproduce la voz generada en su lugar.",
+	"voiceLabel": "Voz",
+	"speedLabel": "Velocidad",
+	"generateAll": "Generar todo",
+	"generating": "Generando… {{done}}/{{total}}",
+	"regenerate": "Regenerar",
+	"play": "Reproducir",
+	"stop": "Detener",
+	"resetScript": "Restablecer el guion a la transcripción",
+	"textPlaceholder": "Guion del segmento…",
+	"status": {
+		"idle": "Sin generar",
+		"queued": "En cola",
+		"synthesizing": "Generando…",
+		"ready": "Listo",
+		"error": "Error"
+	},
+	"noTranscript": "Graba o abre un vídeo con voz: el guion se genera a partir de su transcripción.",
+	"transcribing": "Transcribiendo… el guion estará listo cuando termine la transcripción.",
+	"noSegments": "Aún no hay guion. Restablece desde la transcripción para empezar.",
+	"rowHint": "Activa la voz en off para ver aquí la narración generada",
+	"trimmedTitle": "Las palabras de este clip caen en una región recortada y no se reproducirán"
+}

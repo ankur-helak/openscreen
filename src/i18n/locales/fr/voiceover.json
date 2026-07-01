@@ -1,0 +1,28 @@
+{
+	"navLabel": "Voix off",
+	"title": "Voix off IA",
+	"description": "Remplacez votre narration d'origine par une voix nette générée sur l'appareil à partir de votre transcription.",
+	"enableLabel": "Activer la voix off",
+	"enableHint": "Coupe l'audio d'origine et lit la voix générée à la place.",
+	"voiceLabel": "Voix",
+	"speedLabel": "Vitesse",
+	"generateAll": "Tout générer",
+	"generating": "Génération… {{done}}/{{total}}",
+	"regenerate": "Régénérer",
+	"play": "Lire",
+	"stop": "Arrêter",
+	"resetScript": "Réinitialiser le script sur la transcription",
+	"textPlaceholder": "Script du segment…",
+	"status": {
+		"idle": "Non généré",
+		"queued": "En file d'attente",
+		"synthesizing": "Génération…",
+		"ready": "Prêt",
+		"error": "Échec"
+	},
+	"noTranscript": "Enregistrez ou ouvrez une vidéo avec de la parole : le script est généré à partir de sa transcription.",
+	"transcribing": "Transcription… le script sera prêt une fois la transcription terminée.",
+	"noSegments": "Pas encore de script. Réinitialisez depuis la transcription pour commencer.",
+	"rowHint": "Activez la voix off pour voir ici la narration générée",
+	"trimmedTitle": "Les mots de ce clip se trouvent dans une région coupée et ne seront pas lus"
+}

@@ -22,6 +22,7 @@ export const I18N_NAMESPACES = [
 	"settings",
 	"shortcuts",
 	"timeline",
+	"voiceover",
 ] as const;
 
 export type Locale = string;

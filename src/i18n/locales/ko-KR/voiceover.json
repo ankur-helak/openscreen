@@ -1,0 +1,28 @@
+{
+	"navLabel": "내레이션",
+	"title": "AI 내레이션",
+	"description": "원본 내레이션을 기기에서 자막으로 생성한 깨끗한 음성으로 교체합니다.",
+	"enableLabel": "내레이션 사용",
+	"enableHint": "원본 오디오를 음소거하고 대신 생성된 음성을 재생합니다.",
+	"voiceLabel": "음성",
+	"speedLabel": "속도",
+	"generateAll": "모두 생성",
+	"generating": "생성 중… {{done}}/{{total}}",
+	"regenerate": "다시 생성",
+	"play": "재생",
+	"stop": "중지",
+	"resetScript": "대본을 자막으로 초기화",
+	"textPlaceholder": "세그먼트 대본…",
+	"status": {
+		"idle": "생성 안 됨",
+		"queued": "대기 중",
+		"synthesizing": "생성 중…",
+		"ready": "준비됨",
+		"error": "실패"
+	},
+	"noTranscript": "음성이 있는 영상을 녹화하거나 여세요. 대본은 해당 자막에서 생성됩니다.",
+	"transcribing": "자막 생성 중… 자막이 완료되면 대본이 준비됩니다.",
+	"noSegments": "아직 대본이 없습니다. 자막에서 초기화하여 시작하세요.",
+	"rowHint": "내레이션을 사용하면 생성된 내레이션이 여기에 표시됩니다",
+	"trimmedTitle": "이 클립의 말은 잘린 구간에 있어 재생되지 않습니다"
+}

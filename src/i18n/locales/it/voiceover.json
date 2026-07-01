@@ -1,0 +1,28 @@
+{
+	"navLabel": "Voce fuori campo",
+	"title": "Voce fuori campo IA",
+	"description": "Sostituisci la narrazione originale con una voce pulita generata sul dispositivo a partire dalla trascrizione.",
+	"enableLabel": "Attiva la voce fuori campo",
+	"enableHint": "Disattiva l'audio originale e riproduce al suo posto la voce generata.",
+	"voiceLabel": "Voce",
+	"speedLabel": "Velocità",
+	"generateAll": "Genera tutto",
+	"generating": "Generazione… {{done}}/{{total}}",
+	"regenerate": "Rigenera",
+	"play": "Riproduci",
+	"stop": "Ferma",
+	"resetScript": "Ripristina il copione alla trascrizione",
+	"textPlaceholder": "Copione del segmento…",
+	"status": {
+		"idle": "Non generato",
+		"queued": "In coda",
+		"synthesizing": "Generazione…",
+		"ready": "Pronto",
+		"error": "Errore"
+	},
+	"noTranscript": "Registra o apri un video con parlato: il copione viene generato dalla sua trascrizione.",
+	"transcribing": "Trascrizione… il copione sarà pronto al termine della trascrizione.",
+	"noSegments": "Ancora nessun copione. Ripristina dalla trascrizione per iniziare.",
+	"rowHint": "Attiva la voce fuori campo per vedere qui la narrazione generata",
+	"trimmedTitle": "Le parole di questa clip ricadono in una regione tagliata e non verranno riprodotte"
+}

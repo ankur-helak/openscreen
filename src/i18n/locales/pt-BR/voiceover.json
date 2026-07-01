@@ -1,0 +1,28 @@
+{
+	"navLabel": "Narração",
+	"title": "Narração com IA",
+	"description": "Substitua sua narração original por uma voz limpa gerada no dispositivo a partir da sua transcrição.",
+	"enableLabel": "Ativar narração",
+	"enableHint": "Silencia o áudio original e reproduz a voz gerada no lugar.",
+	"voiceLabel": "Voz",
+	"speedLabel": "Velocidade",
+	"generateAll": "Gerar tudo",
+	"generating": "Gerando… {{done}}/{{total}}",
+	"regenerate": "Regerar",
+	"play": "Reproduzir",
+	"stop": "Parar",
+	"resetScript": "Redefinir o roteiro para a transcrição",
+	"textPlaceholder": "Roteiro do segmento…",
+	"status": {
+		"idle": "Não gerado",
+		"queued": "Na fila",
+		"synthesizing": "Gerando…",
+		"ready": "Pronto",
+		"error": "Falhou"
+	},
+	"noTranscript": "Grave ou abra um vídeo com fala — o roteiro é gerado a partir da transcrição.",
+	"transcribing": "Transcrevendo… o roteiro ficará pronto quando a transcrição terminar.",
+	"noSegments": "Ainda sem roteiro. Redefina a partir da transcrição para começar.",
+	"rowHint": "Ative a narração para ver aqui a narração gerada",
+	"trimmedTitle": "As palavras deste clipe estão em uma região cortada e não serão reproduzidas"
+}

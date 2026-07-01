@@ -1,0 +1,28 @@
+{
+	"navLabel": "ナレーション",
+	"title": "AIナレーション",
+	"description": "元のナレーションを、文字起こしから端末上で生成したクリアな音声に置き換えます。",
+	"enableLabel": "ナレーションを有効にする",
+	"enableHint": "元の音声をミュートし、代わりに生成した音声を再生します。",
+	"voiceLabel": "声",
+	"speedLabel": "速度",
+	"generateAll": "すべて生成",
+	"generating": "生成中… {{done}}/{{total}}",
+	"regenerate": "再生成",
+	"play": "再生",
+	"stop": "停止",
+	"resetScript": "台本を文字起こしにリセット",
+	"textPlaceholder": "セグメントの台本…",
+	"status": {
+		"idle": "未生成",
+		"queued": "待機中",
+		"synthesizing": "生成中…",
+		"ready": "準備完了",
+		"error": "失敗"
+	},
+	"noTranscript": "音声のある動画を録画または開いてください。台本はその文字起こしから生成されます。",
+	"transcribing": "文字起こし中… 文字起こしが完了すると台本が準備できます。",
+	"noSegments": "まだ台本がありません。文字起こしからリセットして開始してください。",
+	"rowHint": "ナレーションを有効にすると、生成されたナレーションがここに表示されます",
+	"trimmedTitle": "このクリップの言葉はトリミング領域に含まれており、再生されません"
+}

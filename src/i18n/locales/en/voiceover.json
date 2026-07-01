@@ -1,0 +1,28 @@
+{
+	"navLabel": "Voiceover",
+	"title": "AI Voiceover",
+	"description": "Replace your original narration with a clean on-device voice, generated from your transcript.",
+	"enableLabel": "Enable voiceover",
+	"enableHint": "Mutes the original audio and plays the generated voice instead.",
+	"voiceLabel": "Voice",
+	"speedLabel": "Speed",
+	"generateAll": "Generate all",
+	"generating": "Generating… {{done}}/{{total}}",
+	"regenerate": "Regenerate",
+	"play": "Play",
+	"stop": "Stop",
+	"resetScript": "Reset script to transcript",
+	"textPlaceholder": "Segment script…",
+	"status": {
+		"idle": "Not generated",
+		"queued": "Queued",
+		"synthesizing": "Generating…",
+		"ready": "Ready",
+		"error": "Failed"
+	},
+	"noTranscript": "Record or open a video with speech — the script is generated from its transcript.",
+	"transcribing": "Transcribing… the script will be ready when the transcript finishes.",
+	"noSegments": "No script yet. Reset from transcript to get started.",
+	"rowHint": "Enable voiceover to see generated narration here",
+	"trimmedTitle": "This clip's words fall in a trimmed region and won't play"
+}
