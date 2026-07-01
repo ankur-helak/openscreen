@@ -5,6 +5,8 @@ import { stubNodeBuiltins } from "./vite-plugins/stubNodeBuiltins";
 
 const NODE_STUB = path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts");
 const ORT_STUB = path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts");
+const KOKORO_VOICE_FS_STUB = path.resolve(__dirname, "src/lib/vite-stubs/kokoroVoiceFs.ts");
+const KOKORO_PATH_STUB = path.resolve(__dirname, "src/lib/vite-stubs/kokoroPath.ts");
 
 export default defineConfig({
 	plugins: [stubNodeBuiltins()],
@@ -30,12 +32,12 @@ export default defineConfig({
 		alias: [
 			{ find: "@", replacement: path.resolve(__dirname, "src") },
 			{ find: /^fs$/, replacement: NODE_STUB },
-			{ find: /^path$/, replacement: NODE_STUB },
+			{ find: /^path$/, replacement: KOKORO_PATH_STUB },
 			{ find: /^url$/, replacement: NODE_STUB },
 			{ find: /^node:fs$/, replacement: NODE_STUB },
-			{ find: /^node:path$/, replacement: NODE_STUB },
+			{ find: /^node:path$/, replacement: KOKORO_PATH_STUB },
 			{ find: /^node:url$/, replacement: NODE_STUB },
-			{ find: /^fs\/promises$/, replacement: NODE_STUB },
+			{ find: /^fs\/promises$/, replacement: KOKORO_VOICE_FS_STUB },
 			{ find: /^node:fs\/promises$/, replacement: NODE_STUB },
 			{ find: /^onnxruntime-node$/, replacement: ORT_STUB }, // re-exports web ORT
 		],

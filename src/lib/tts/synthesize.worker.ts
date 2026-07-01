@@ -6,6 +6,7 @@
  */
 
 import type { KokoroTTS } from "kokoro-js";
+import { setKokoroVoiceBaseUrl } from "@/lib/vite-stubs/kokoroVoiceFs";
 import type { SynthWorkerRequest, SynthWorkerResponse } from "./synthesize";
 
 function post(message: SynthWorkerResponse, transfer?: Transferable[]): void {
@@ -57,9 +58,15 @@ function loadTts(opts: { useLocalModels: boolean; assetBaseUrl?: string }): Prom
 				// Non-threaded wasm: SharedArrayBuffer isn't available under file:// (no cross-origin isolation).
 				env.backends.onnx.wasm.numThreads = 1;
 			}
+			// kokoro-js loads voices itself (bypassing env.localModelPath); point its
+			// fs/promises shim at the bundled voices dir so it reads them offline.
+			setKokoroVoiceBaseUrl(
+				new URL("models/onnx-community/Kokoro-82M-v1.0-ONNX/voices/", base).href,
+			);
 		} else {
-			// Dev (http://localhost): fetch model + wasm from the remote CDN.
+			// Dev (http://localhost): fetch model + wasm + voices from the remote CDN.
 			env.allowLocalModels = false;
+			setKokoroVoiceBaseUrl(null);
 		}
 		const { KokoroTTS } = await import("kokoro-js");
 		return KokoroTTS.from_pretrained(MODEL_ID, { dtype: "q8", device: "wasm" });
