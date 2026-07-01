@@ -133,4 +133,119 @@ describe("useVoiceover", () => {
 		expect(sentBuffer.byteLength).toBe(view.byteLength); // 96, NOT backing.buffer.byteLength (400)
 		expect(Array.from(new Float32Array(sentBuffer))).toEqual(Array.from(view));
 	});
+
+	it("generateSegment ignores a re-entrant call while a segment is synthesizing", async () => {
+		let resolveSynth: (v: { pcm: Float32Array; sampleRate: number }) => void = () => {
+			// Placeholder; reassigned below
+		};
+		const synthesize = vi.fn(
+			() =>
+				new Promise<{ pcm: Float32Array; sampleRate: number }>((res) => {
+					resolveSynth = res;
+				}),
+		);
+		const provider = {
+			id: "test",
+			listVoices: async () => [],
+			synthesize,
+		} as unknown as TtsProvider;
+		const config: VoiceoverConfig = {
+			...DEFAULT_VOICEOVER_CONFIG,
+			enabled: true,
+			segments: [{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 500, text: "hi" }],
+		};
+		const { result } = renderHook(() =>
+			useVoiceover({
+				config,
+				transcript: null,
+				onChange: () => {
+					// No-op for test
+				},
+				provider,
+			}),
+		);
+
+		await act(async () => {
+			void result.current.generateSegment("vo-1"); // first call → synthesizing (pending)
+			await Promise.resolve();
+			void result.current.generateSegment("vo-1"); // re-entrant → must be ignored
+			await Promise.resolve();
+		});
+		expect(synthesize).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveSynth({ pcm: new Float32Array([0.1, 0.2]), sampleRate: 24000 });
+			await Promise.resolve();
+		});
+	});
+
+	it("generateAll marks a not-yet-started segment queued while the first synthesizes", async () => {
+		const deferreds: Array<(v: { pcm: Float32Array; sampleRate: number }) => void> = [];
+		const synthesize = vi.fn(
+			() =>
+				new Promise<{ pcm: Float32Array; sampleRate: number }>((res) => {
+					deferreds.push(res);
+				}),
+		);
+		const provider = {
+			id: "test",
+			listVoices: async () => [],
+			synthesize,
+		} as unknown as TtsProvider;
+		const config: VoiceoverConfig = {
+			...DEFAULT_VOICEOVER_CONFIG,
+			enabled: true,
+			segments: [
+				{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 500, text: "a" },
+				{ id: "vo-2", sourceStartMs: 500, sourceEndMs: 900, text: "b" },
+			],
+		};
+		const { result } = renderHook(() =>
+			useVoiceover({
+				config,
+				transcript: null,
+				onChange: () => {
+					// No-op for test
+				},
+				provider,
+			}),
+		);
+
+		await waitFor(() => {
+			expect(result.current.statuses["vo-1"]?.state).toBe("idle");
+		});
+
+		await act(async () => {
+			void result.current.generateAll();
+			await Promise.resolve();
+		});
+		// First segment is synthesizing; the second must be QUEUED (not yet started) — this is the
+		// behavior generateAll newly produces.
+		expect(result.current.statuses["vo-1"].state).toBe("synthesizing");
+		expect(result.current.statuses["vo-2"].state).toBe("queued");
+
+		await act(async () => {
+			deferreds[0]({ pcm: new Float32Array([0.1]), sampleRate: 24000 });
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		await waitFor(() => {
+			expect(deferreds).toHaveLength(2);
+		});
+
+		await act(async () => {
+			deferreds[1]({ pcm: new Float32Array([0.2]), sampleRate: 24000 });
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		await waitFor(() => {
+			expect(result.current.statuses["vo-2"].state).toBe("ready");
+		});
+
+		expect(synthesize).toHaveBeenCalledTimes(2);
+		expect(result.current.statuses["vo-1"].state).toBe("ready");
+		expect(result.current.statuses["vo-2"].state).toBe("ready");
+	});
 });

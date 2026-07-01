@@ -75,12 +75,18 @@ export function useVoiceover(params: {
 	const generateSegment = useCallback(async (id: string) => {
 		const segment = configRef.current.segments.find((s) => s.id === id);
 		if (!segment) return;
+		const inFlight = statusesRef.current[id]?.state;
+		if (inFlight === "synthesizing") return;
 		const key = computeAudioKey({
 			text: segment.text,
 			voice: configRef.current.voice,
 			speed: configRef.current.speed,
 		});
-		setStatuses((prev) => ({ ...prev, [id]: { state: "synthesizing" } }));
+		setStatuses((prev) => {
+			const next: Record<string, SegmentSynthStatus> = { ...prev, [id]: { state: "synthesizing" } };
+			statusesRef.current = next;
+			return next;
+		});
 		try {
 			const { pcm, sampleRate } = await providerRef.current.synthesize(segment.text, {
 				voice: configRef.current.voice,
@@ -102,7 +108,18 @@ export function useVoiceover(params: {
 	}, []);
 
 	const generateAll = useCallback(async () => {
-		for (const segment of configRef.current.segments) {
+		const pending = configRef.current.segments.filter(
+			(s) => statusesRef.current[s.id]?.state !== "ready",
+		);
+		if (pending.length > 0) {
+			setStatuses((prev) => {
+				const next: Record<string, SegmentSynthStatus> = { ...prev };
+				for (const s of pending) next[s.id] = { state: "queued" };
+				statusesRef.current = next;
+				return next;
+			});
+		}
+		for (const segment of pending) {
 			if (statusesRef.current[segment.id]?.state === "ready") continue;
 			await generateSegment(segment.id);
 		}
