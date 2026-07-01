@@ -11,6 +11,10 @@ import type { Plugin } from "vite";
 export function stubNodeBuiltins(): Plugin {
 	const stubPath = path.resolve(__dirname, "../src/lib/vite-stubs/empty-node-module.ts");
 	const ortStubPath = path.resolve(__dirname, "../src/lib/vite-stubs/onnxruntime-node-stub.ts");
+	// NOTE (voiceover Plan 2/3): kokoro's `fs/promises` + `path` now resolve via the anchored
+	// RegExp aliases in vite.config.ts / vitest.browser.config.ts (→ kokoroVoiceFs / kokoroPath),
+	// which run before this plugin. These entries are retained only as a defensive fallback for any
+	// other Node-builtin importer; they are dead for the kokoro voice-loading path.
 	const stubs = new Set([
 		"fs",
 		"path",
