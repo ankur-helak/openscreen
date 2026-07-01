@@ -206,6 +206,7 @@ export default function VideoEditor() {
 		webcamReactiveZoom,
 		webcamSizePreset,
 		webcamPosition,
+		voiceover,
 	} = editorState;
 
 	// Non-undoable state
@@ -431,6 +432,7 @@ export default function VideoEditor() {
 				webcamReactiveZoom: normalizedEditor.webcamReactiveZoom,
 				webcamSizePreset: normalizedEditor.webcamSizePreset,
 				webcamPosition: normalizedEditor.webcamPosition,
+				voiceover: normalizedEditor.voiceover,
 			});
 			setExportQuality(normalizedEditor.exportQuality);
 			setExportFormat(normalizedEditor.exportFormat);
@@ -514,10 +516,12 @@ export default function VideoEditor() {
 			gifLoop,
 			gifSizePreset,
 			cursorTheme,
+			voiceover,
 		});
 	}, [
 		currentProjectMedia,
 		cursorTheme,
+		voiceover,
 		wallpaper,
 		shadowIntensity,
 		showBlur,
@@ -700,6 +704,7 @@ export default function VideoEditor() {
 				gifLoop,
 				gifSizePreset,
 				cursorTheme,
+				voiceover,
 			};
 			const projectData = createProjectData(currentProjectMedia, editorState);
 
@@ -774,6 +779,7 @@ export default function VideoEditor() {
 			cursorTheme,
 			videoPath,
 			t,
+			voiceover,
 		],
 	);
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_VOICEOVER_CONFIG } from "@/lib/voiceover/types";
 import {
 	createProjectData,
 	createProjectSnapshot,
@@ -262,5 +263,37 @@ describe("wallpaper legacy normalization", () => {
 			wallpaper: "file:///opt/Openscreen/resources/wallpapers/wallpaper99.jpg",
 		});
 		expect(normalized.wallpaper).toBe("/wallpapers/wallpaper1.jpg");
+	});
+});
+
+describe("voiceover persistence", () => {
+	it("PROJECT_VERSION is 3", () => {
+		expect(PROJECT_VERSION).toBe(3);
+	});
+
+	it("defaults voiceover to disabled/empty for legacy projects", () => {
+		const normalized = normalizeProjectEditor({});
+		expect(normalized.voiceover).toEqual(DEFAULT_VOICEOVER_CONFIG);
+	});
+
+	it("round-trips a voiceover config, clamping speed and dropping bad segments", () => {
+		const normalized = normalizeProjectEditor({
+			voiceover: {
+				enabled: true,
+				engine: "kokoro-local",
+				voice: "am_adam",
+				speed: 5, // out of range → clamped to 1.2
+				segments: [
+					{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 1000, text: "Hi." },
+					{ id: 123, text: "bad id" }, // dropped
+				],
+			},
+		} as never);
+		expect(normalized.voiceover.enabled).toBe(true);
+		expect(normalized.voiceover.voice).toBe("am_adam");
+		expect(normalized.voiceover.speed).toBe(1.2);
+		expect(normalized.voiceover.segments).toEqual([
+			{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 1000, text: "Hi." },
+		]);
 	});
 });

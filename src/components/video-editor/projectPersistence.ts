@@ -4,6 +4,8 @@ import { normalizeCursorThemeId } from "@/lib/cursor/cursorThemes";
 import type { ExportFormat, ExportQuality, GifFrameRate, GifSizePreset } from "@/lib/exporter";
 import type { ProjectMedia } from "@/lib/recordingSession";
 import { normalizeProjectMedia } from "@/lib/recordingSession";
+import type { VoiceoverConfig, VoiceoverSegment } from "@/lib/voiceover/types";
+import { DEFAULT_VOICEOVER_CONFIG, VOICEOVER_ENGINE } from "@/lib/voiceover/types";
 import { DEFAULT_WALLPAPER, WALLPAPER_PATHS } from "@/lib/wallpaper";
 import { ASPECT_RATIOS, type AspectRatio, isPortraitAspectRatio } from "@/utils/aspectRatioUtils";
 import {
@@ -62,7 +64,7 @@ function normalizeWallpaperValue(value: string): string {
 	return CANONICAL_WALLPAPERS.has(canonical) ? canonical : DEFAULT_WALLPAPER;
 }
 
-export const PROJECT_VERSION = 2;
+export const PROJECT_VERSION = 3;
 
 export interface ProjectEditorState {
 	wallpaper: string;
@@ -92,6 +94,7 @@ export interface ProjectEditorState {
 	gifLoop: boolean;
 	gifSizePreset: GifSizePreset;
 	cursorTheme: string;
+	voiceover: VoiceoverConfig;
 }
 
 export interface EditorProjectData {
@@ -215,6 +218,31 @@ export function resolveProjectMedia(
 	}
 
 	return null;
+}
+
+function normalizeVoiceoverConfig(raw: unknown): VoiceoverConfig {
+	const v = (raw && typeof raw === "object" ? raw : {}) as Partial<VoiceoverConfig>;
+	const segments: VoiceoverSegment[] = Array.isArray(v.segments)
+		? v.segments
+				.filter((s): s is VoiceoverSegment =>
+					Boolean(s && typeof s.id === "string" && typeof s.text === "string"),
+				)
+				.map((s) => ({
+					id: s.id,
+					text: s.text,
+					sourceStartMs: isFiniteNumber(s.sourceStartMs)
+						? Math.max(0, Math.round(s.sourceStartMs))
+						: 0,
+					sourceEndMs: isFiniteNumber(s.sourceEndMs) ? Math.max(0, Math.round(s.sourceEndMs)) : 0,
+				}))
+		: [];
+	return {
+		enabled: typeof v.enabled === "boolean" ? v.enabled : DEFAULT_VOICEOVER_CONFIG.enabled,
+		engine: VOICEOVER_ENGINE,
+		voice: typeof v.voice === "string" && v.voice ? v.voice : DEFAULT_VOICEOVER_CONFIG.voice,
+		speed: isFiniteNumber(v.speed) ? clamp(v.speed, 0.7, 1.2) : DEFAULT_VOICEOVER_CONFIG.speed,
+		segments,
+	};
 }
 
 export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): ProjectEditorState {
@@ -530,6 +558,7 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 			editor.gifSizePreset === "original"
 				? editor.gifSizePreset
 				: DEFAULT_GIF_SETTINGS.sizePreset,
+		voiceover: normalizeVoiceoverConfig(editor.voiceover),
 	};
 }
 
