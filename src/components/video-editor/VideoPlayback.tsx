@@ -397,12 +397,13 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			speedRegions,
 		});
 
-		// Mute the source narration whenever voiceover replaces it.
-		// biome-ignore lint/correctness/useExhaustiveDependencies: videoReady re-runs this so mute applies once the <video> element mounts, not only when voiceoverEnabled changes
+		// Mute the source narration only when voiceover has placed clips (matches export replace-mode gate).
+		const voiceoverActive = voiceoverEnabled && (voiceoverPlacedClips?.length ?? 0) > 0;
+		// biome-ignore lint/correctness/useExhaustiveDependencies: videoReady re-runs this so mute applies once the <video> element mounts, not only when voiceoverActive changes
 		useEffect(() => {
 			const video = videoRef.current;
-			if (video) video.muted = voiceoverEnabled;
-		}, [voiceoverEnabled, videoReady]);
+			if (video) video.muted = voiceoverActive;
+		}, [voiceoverActive, videoReady]);
 
 		const syncResolvedDuration = useCallback(
 			(video: HTMLVideoElement) => {
@@ -654,7 +655,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 						throw err;
 					});
 					const supplementalAudio = supplementalAudioRef.current;
-					if (supplementalAudio && !voiceoverEnabled) {
+					if (supplementalAudio && !voiceoverActive) {
 						supplementalAudio.currentTime = vid.currentTime;
 						supplementalAudio.playbackRate = vid.playbackRate;
 						await supplementalAudio.play().catch(() => {
@@ -1157,7 +1158,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			if (!video || !supplementalAudio || !supplementalAudioPath) {
 				return;
 			}
-			if (voiceoverEnabled) {
+			if (voiceoverActive) {
 				supplementalAudio.pause();
 				return;
 			}
@@ -1183,7 +1184,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			supplementalAudio.play().catch(() => {
 				// Keep video playback running even if supplemental preview audio is unavailable.
 			});
-		}, [currentTime, isPlaying, speedRegions, supplementalAudioPath, voiceoverEnabled]);
+		}, [currentTime, isPlaying, speedRegions, supplementalAudioPath, voiceoverActive]);
 
 		useEffect(() => {
 			if (!pixiReady || !videoReady) return;

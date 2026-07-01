@@ -168,7 +168,7 @@ export async function resampleMonoPcm(
 	const outLength = Math.max(1, Math.ceil(durationSec * toRate));
 	const offline = new OfflineAudioContext(1, outLength, toRate);
 	const buf = offline.createBuffer(1, mono.length, fromRate);
-	buf.copyToChannel(Float32Array.from(mono), 0);
+	buf.copyToChannel(mono as Float32Array<ArrayBuffer>, 0);
 	const src = offline.createBufferSource();
 	src.buffer = buf;
 	src.connect(offline.destination);
