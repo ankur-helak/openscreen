@@ -60,7 +60,13 @@ export function useClipAudition(): UseClipAuditionResult {
 		};
 		sourceRef.current = source;
 		setAuditioningKey(key);
-		source.start();
+		// Resume first: a context created under autoplay policy starts "suspended" and would
+		// otherwise play silence. Guard start on still being the current source (resume is async).
+		void Promise.resolve(ctx.resume?.()).finally(() => {
+			if (sourceRef.current === source) {
+				source.start();
+			}
+		});
 	}, []);
 
 	// Stop and release the context on unmount.
