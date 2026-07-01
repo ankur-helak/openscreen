@@ -2912,5 +2912,7 @@ export function registerIpcHandlers(
 			normalizeVideoSourcePath(videoPath ?? currentVideoPath),
 		loadCursorRecordingData: readCursorRecordingFile,
 		loadCursorTelemetry: readCursorTelemetryFile,
+		getTranscriptCacheDir: () => path.join(app.getPath("userData"), "transcripts"),
+		getCaptionDraftsDir: () => path.join(app.getPath("userData"), "caption-drafts"),
 	});
 }

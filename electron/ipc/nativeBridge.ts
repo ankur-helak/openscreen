@@ -14,6 +14,7 @@ import { TelemetryCursorAdapter } from "../native-bridge/cursor/telemetryCursorA
 import { CursorService } from "../native-bridge/services/cursorService";
 import { ProjectService } from "../native-bridge/services/projectService";
 import { SystemService } from "../native-bridge/services/systemService";
+import { TranscriptService } from "../native-bridge/services/transcriptService";
 import { NativeBridgeStateStore } from "../native-bridge/store";
 
 export interface NativeBridgeContext {
@@ -37,6 +38,8 @@ export interface NativeBridgeContext {
 		videoPath: string,
 	) => Promise<import("../../src/native/contracts").CursorRecordingData>;
 	loadCursorTelemetry: (videoPath: string) => Promise<CursorTelemetryLoadResult>;
+	getTranscriptCacheDir: () => string;
+	getCaptionDraftsDir: () => string;
 }
 
 function normalizePlatform(platform: NodeJS.Platform): NativePlatform {
@@ -113,6 +116,11 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 			resolveVideoPath: context.resolveVideoPath,
 			loadTelemetry: context.loadCursorTelemetry,
 		}),
+	});
+	const transcriptService = new TranscriptService({
+		cacheDir: context.getTranscriptCacheDir(),
+		draftsDir: context.getCaptionDraftsDir(),
+		resolveSourcePath: (sourcePath: string) => context.resolveVideoPath(sourcePath),
 	});
 	const systemService = new SystemService({
 		store,
@@ -216,6 +224,49 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 								requestId,
 								"UNSUPPORTED_ACTION",
 								`Unsupported cursor action: ${action}`,
+							);
+					}
+				}
+
+				case "transcript": {
+					const action = request.action as string;
+					switch (request.action) {
+						case "getTranscript":
+							return createSuccessResponse(
+								requestId,
+								await transcriptService.getTranscript(request.payload.sourcePath),
+							);
+						case "putTranscript":
+							return createSuccessResponse(
+								requestId,
+								await transcriptService.putTranscript(
+									request.payload.sourcePath,
+									request.payload.transcript,
+								),
+							);
+						case "getCaptionDraft":
+							return createSuccessResponse(
+								requestId,
+								await transcriptService.getCaptionDraft(request.payload.sourcePath),
+							);
+						case "putCaptionDraft":
+							return createSuccessResponse(
+								requestId,
+								await transcriptService.putCaptionDraft(
+									request.payload.sourcePath,
+									request.payload.regions,
+								),
+							);
+						case "clearCaptionDraft":
+							return createSuccessResponse(
+								requestId,
+								await transcriptService.clearCaptionDraft(request.payload.sourcePath),
+							);
+						default:
+							return createErrorResponse(
+								requestId,
+								"UNSUPPORTED_ACTION",
+								`Unsupported transcript action: ${action}`,
 							);
 					}
 				}
