@@ -4,6 +4,9 @@ import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
 import { stubNodeBuiltins } from "./vite-plugins/stubNodeBuiltins";
 
+const NODE_STUB = path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts");
+const ORT_STUB = path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts");
+
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [
@@ -28,30 +31,34 @@ export default defineConfig({
 		}),
 	],
 	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "src"),
-			// @xenova/transformers (v2) + @huggingface/transformers (v3, via kokoro-js):
-			// env.js statically imports fs/path/url; onnx.js imports onnxruntime-node
-			// (must not be bundled in the renderer — it requires fs). v3 uses the
-			// `node:`-prefixed specifiers, so alias both forms to the empty stub.
-			// kokoro-js also imports fs/promises and path.
-			fs: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			path: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			url: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:fs": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:path": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:url": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"fs/promises": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:fs/promises": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"onnxruntime-node": path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts"), // re-exports web ORT
-		},
+		// @xenova/transformers (v2) + @huggingface/transformers (v3, via kokoro-js):
+		// env.js statically imports fs/path/url; onnx.js imports onnxruntime-node
+		// (must not be bundled in the renderer — it requires fs). v3 uses the
+		// `node:`-prefixed specifiers, so alias both forms to the empty stub.
+		// kokoro-js also imports fs/promises and path.
+		//
+		// Anchored RegExp (`/^fs$/`, not `"fs"`): a bare string `find` prefix-matches, so
+		// `"fs"` would also rewrite `fs/promises` → `<stub>/promises` (a broken path). The
+		// anchors keep each specifier exact and let the `fs/promises` entry resolve on its own.
+		alias: [
+			{ find: "@", replacement: path.resolve(__dirname, "src") },
+			{ find: /^fs$/, replacement: NODE_STUB },
+			{ find: /^path$/, replacement: NODE_STUB },
+			{ find: /^url$/, replacement: NODE_STUB },
+			{ find: /^node:fs$/, replacement: NODE_STUB },
+			{ find: /^node:path$/, replacement: NODE_STUB },
+			{ find: /^node:url$/, replacement: NODE_STUB },
+			{ find: /^fs\/promises$/, replacement: NODE_STUB },
+			{ find: /^node:fs\/promises$/, replacement: NODE_STUB },
+			{ find: /^onnxruntime-node$/, replacement: ORT_STUB }, // re-exports web ORT
+		],
 	},
 	optimizeDeps: {
 		exclude: ["@xenova/transformers", "@huggingface/transformers", "kokoro-js"],
 	},
 	// The captioning worker dynamically imports @xenova/transformers, and the TTS worker
-	// imports kokoro-js (which has bare Node imports). Worker bundles code-split and need
-	// the stubNodeBuiltins plugin to rewrite kokoro-js imports.
+	// imports kokoro-js (which has bare Node imports). Worker bundles don't inherit the
+	// top-level `plugins`, so stubNodeBuiltins is re-applied here to redirect those imports.
 	worker: {
 		format: "es",
 		plugins: () => [stubNodeBuiltins()],

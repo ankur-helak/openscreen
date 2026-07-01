@@ -8,7 +8,8 @@
     "**/*.node"
   ],
   "productName": "Openscreen",
-  // Fetch the auto-caption model + ORT wasm into caption-assets/ before packaging (idempotent).
+  // Fetch the caption (Whisper) + voiceover (Kokoro) models + ORT wasm into
+  // caption-assets/ and tts-assets/ before packaging (idempotent).
   "beforePack": "scripts/before-pack.cjs",
   "npmRebuild": true,
   // sharp ships ABI-stable (napi) prebuilt binaries with bundled libvips. Building it from source

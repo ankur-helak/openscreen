@@ -8,8 +8,8 @@
 // Idempotent: existing non-empty files are left alone, so re-runs and CI cache hits are no-ops.
 // `tts-assets/` is gitignored and shipped via electron-builder `extraResources`.
 
-import { copyFile, mkdir, readdir, stat } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
+import { copyFile, mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -120,7 +120,9 @@ async function copyOrtWasm() {
 	try {
 		entries = await readdir(distDir);
 	} catch {
-		throw new Error(`Missing ${distDir} — is @huggingface/transformers installed? Run npm ci first.`);
+		throw new Error(
+			`Missing ${distDir} — is @huggingface/transformers installed? Run npm ci first.`,
+		);
 	}
 	const wasm = entries.filter((f) => f.endsWith(".wasm"));
 	if (wasm.length === 0) throw new Error(`No .wasm files found in ${distDir}`);

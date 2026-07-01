@@ -1,10 +1,13 @@
 import path from "node:path";
 import type { Plugin } from "vite";
 
-// Plugin to stub Node builtins imported by kokoro-js and transformers.
-// kokoro-js ships pre-bundled with bare Node imports (`fs/promises`, `path`)
-// that Vite resolve.alias doesn't reliably rewrite — this plugin intercepts
-// them at the transform stage and rewrites to the stubs.
+// Stubs the Node builtins that kokoro-js / @huggingface/transformers import
+// (`fs`, `path`, `url`, `fs/promises`, `onnxruntime-node`) with web-safe shims so
+// the renderer and worker bundles never pull in Node-only code. `enforce: "pre"`
+// runs the `resolveId` redirect ahead of Vite's default resolution. Wire this into
+// both the top-level `plugins` and `worker.plugins` (worker bundles keep their own
+// plugin list); `resolve.alias` in vite.config.ts covers the same specifiers for the
+// main bundle.
 export function stubNodeBuiltins(): Plugin {
 	const stubPath = path.resolve(__dirname, "../src/lib/vite-stubs/empty-node-module.ts");
 	const ortStubPath = path.resolve(__dirname, "../src/lib/vite-stubs/onnxruntime-node-stub.ts");
@@ -21,29 +24,12 @@ export function stubNodeBuiltins(): Plugin {
 	return {
 		name: "stub-node-builtins",
 		enforce: "pre",
-		resolveId(id, importer) {
+		resolveId(id) {
 			if (stubs.has(id)) {
 				return stubPath;
 			}
 			if (id === "onnxruntime-node") {
 				return ortStubPath;
-			}
-		},
-		transform(code, id) {
-			// Rewrite imports within kokoro-js to point to our stubs
-			if (id.includes("kokoro-js")) {
-				let transformed = code;
-				transformed = transformed.replace(
-					/import\s+(\w+)\s+from\s*["']fs\/promises["']/g,
-					`import $1 from "${stubPath}"`,
-				);
-				transformed = transformed.replace(
-					/import\s+(\w+)\s+from\s*["']path["']/g,
-					`import $1 from "${stubPath}"`,
-				);
-				if (transformed !== code) {
-					return { code: transformed, map: null };
-				}
 			}
 		},
 	};

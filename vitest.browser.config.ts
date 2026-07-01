@@ -3,6 +3,9 @@ import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { stubNodeBuiltins } from "./vite-plugins/stubNodeBuiltins";
 
+const NODE_STUB = path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts");
+const ORT_STUB = path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts");
+
 export default defineConfig({
 	plugins: [stubNodeBuiltins()],
 	test: {
@@ -22,23 +25,20 @@ export default defineConfig({
 		hookTimeout: 30_000,
 	},
 	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "src"),
-			// @xenova/transformers (v2) + @huggingface/transformers (v3, via kokoro-js):
-			// env.js statically imports fs/path/url; onnx.js imports onnxruntime-node
-			// (must not be bundled in the renderer — it requires fs). v3 uses the
-			// `node:`-prefixed specifiers, so alias both forms to the empty stub.
-			// kokoro-js also imports fs/promises and path.
-			fs: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			path: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			url: path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:fs": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:path": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:url": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"fs/promises": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"node:fs/promises": path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts"),
-			"onnxruntime-node": path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts"), // re-exports web ORT
-		},
+		// See vite.config.ts for why these are anchored RegExp (bare-string `fs` would
+		// prefix-match and mangle `fs/promises` → `<stub>/promises`).
+		alias: [
+			{ find: "@", replacement: path.resolve(__dirname, "src") },
+			{ find: /^fs$/, replacement: NODE_STUB },
+			{ find: /^path$/, replacement: NODE_STUB },
+			{ find: /^url$/, replacement: NODE_STUB },
+			{ find: /^node:fs$/, replacement: NODE_STUB },
+			{ find: /^node:path$/, replacement: NODE_STUB },
+			{ find: /^node:url$/, replacement: NODE_STUB },
+			{ find: /^fs\/promises$/, replacement: NODE_STUB },
+			{ find: /^node:fs\/promises$/, replacement: NODE_STUB },
+			{ find: /^onnxruntime-node$/, replacement: ORT_STUB }, // re-exports web ORT
+		],
 	},
 	optimizeDeps: {
 		exclude: ["@xenova/transformers", "@huggingface/transformers", "kokoro-js"],

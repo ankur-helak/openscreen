@@ -75,7 +75,8 @@ self.onmessage = async (event: MessageEvent<SynthWorkerRequest>) => {
 		const tts = await loadTts({ useLocalModels, assetBaseUrl });
 
 		post({ id, type: "status", phase: "synthesize" });
-		// Cast voice to any — the provider layer already validates it against the VOICES list.
+		// Cast to any: kokoro-js types `voice` as a string-literal union. We pass an
+		// arbitrary string; kokoro-js validates it at runtime (throws on unknown ids).
 		const audio = (await tts.generate(text, { voice: voice as any, speed })) as {
 			audio: Float32Array;
 			sampling_rate: number;
