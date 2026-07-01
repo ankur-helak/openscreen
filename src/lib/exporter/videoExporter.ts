@@ -7,6 +7,7 @@ import type {
 	WebcamSizePreset,
 	ZoomRegion,
 } from "@/components/video-editor/types";
+import type { PlacedClip } from "@/lib/voiceover/layout";
 import { BackgroundLoadError } from "@/lib/wallpaper";
 import type { CursorRecordingData } from "@/native/contracts";
 import { getPlatform } from "@/utils/platformUtils";
@@ -27,6 +28,11 @@ export interface VideoExporterConfig extends ExportConfig {
 	zoomRegions: ZoomRegion[];
 	trimRegions?: TrimRegion[];
 	speedRegions?: SpeedRegion[];
+	voiceover?: {
+		enabled: boolean;
+		placedClips: PlacedClip[];
+		clipPcmByKey: Record<string, { pcm: Float32Array; sampleRate: number }>;
+	};
 	showShadow: boolean;
 	shadowIntensity: number;
 	showBlur: boolean;
@@ -76,6 +82,10 @@ function hasNativeCursorOverlay(config: VideoExporterConfig) {
 	return (config.cursorScale ?? 0) > 0;
 }
 
+function hasVoiceoverReplacement(config: VideoExporterConfig): boolean {
+	return Boolean(config.voiceover?.enabled && config.voiceover.placedClips.length > 0);
+}
+
 function isDefaultCrop(cropRegion: CropRegion) {
 	return (
 		Math.abs(cropRegion.x) <= SOURCE_COPY_EPSILON &&
@@ -110,6 +120,7 @@ export function getSourceCopyFastPathBlockers(
 	if (hasActiveTimeRegions(config.annotationRegions))
 		blockers.push("annotation regions are present");
 	if (hasNativeCursorOverlay(config)) blockers.push("editable cursor overlay is enabled");
+	if (hasVoiceoverReplacement(config)) blockers.push("voiceover replace mode is enabled");
 	if (!isDefaultCrop(config.cropRegion)) blockers.push("crop is not default");
 	if ((config.padding ?? 0) > SOURCE_COPY_EPSILON) blockers.push("padding is not zero");
 	if ((config.videoPadding ?? 0) > SOURCE_COPY_EPSILON) blockers.push("video padding is not zero");
@@ -269,12 +280,18 @@ export class VideoExporter {
 
 			await this.initializeEncoder(encoderPreference);
 
+			const voiceoverReplace = hasVoiceoverReplacement(this.config);
 			const sourceDemuxer = streamingDecoder.getDemuxer();
-			const audioExportCodec =
-				videoInfo.hasAudio && sourceDemuxer
+			const audioExportCodec = voiceoverReplace
+				? await AudioProcessor.selectSupportedExportCodec(48000, 2)
+				: videoInfo.hasAudio && sourceDemuxer
 					? await AudioProcessor.selectSupportedExportCodecForSource(sourceDemuxer)
 					: null;
-			if (videoInfo.hasAudio && !audioExportCodec) {
+			if (voiceoverReplace && !audioExportCodec) {
+				console.warn(
+					"[VideoExporter] No supported audio codec for voiceover, exporting video-only.",
+				);
+			} else if (!voiceoverReplace && videoInfo.hasAudio && !audioExportCodec) {
 				console.warn("[VideoExporter] No supported audio export codec, exporting video-only.");
 			}
 
@@ -463,7 +480,22 @@ export class VideoExporter {
 				phase: "finalizing",
 			});
 
-			if (hasAudio && audioExportCodec && !this.cancelled) {
+			if (voiceoverReplace && audioExportCodec && !this.cancelled) {
+				console.log("[VideoExporter] Synthesizing voiceover audio track...");
+				const { effectiveDuration } = streamingDecoder.getExportMetrics(
+					this.config.frameRate,
+					this.config.trimRegions,
+					this.config.speedRegions,
+				);
+				this.audioProcessor = new AudioProcessor();
+				await this.audioProcessor.synthesizeVoiceoverTrack(
+					this.config.voiceover!.placedClips,
+					this.config.voiceover!.clipPcmByKey,
+					effectiveDuration * 1000,
+					audioExportCodec,
+					muxer,
+				);
+			} else if (!voiceoverReplace && hasAudio && audioExportCodec && !this.cancelled) {
 				const demuxer = streamingDecoder.getDemuxer();
 				if (demuxer) {
 					console.log("[VideoExporter] Processing audio track...");

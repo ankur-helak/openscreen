@@ -119,3 +119,29 @@ describe("getSourceCopyFastPathBlockers", () => {
 		).toContain("output-size 1920x1080 differs from source 1920x1032");
 	});
 });
+
+describe("voiceover replace mode + source-copy fast path", () => {
+	const videoInfo = { width: 1920, height: 1080 };
+
+	it("blocks the source-copy fast path when voiceover replace mode has clips", () => {
+		const blockers = getSourceCopyFastPathBlockers(
+			createConfig({
+				voiceover: {
+					enabled: true,
+					placedClips: [{ segmentId: "vo-1", audioKey: "k1", startMs: 0, durationMs: 1000 }],
+					clipPcmByKey: {},
+				},
+			}),
+			videoInfo,
+		);
+		expect(blockers.some((b) => b.includes("voiceover"))).toBe(true);
+	});
+
+	it("does not block when voiceover is enabled but has no clips", () => {
+		const blockers = getSourceCopyFastPathBlockers(
+			createConfig({ voiceover: { enabled: true, placedClips: [], clipPcmByKey: {} } }),
+			videoInfo,
+		);
+		expect(blockers.some((b) => b.includes("voiceover"))).toBe(false);
+	});
+});
