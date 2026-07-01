@@ -21,5 +21,5 @@ describe("KokoroProvider (browser, real model)", () => {
 		} finally {
 			provider.dispose();
 		}
-	}, 120_000);
+	}, 30_000);
 });

@@ -2,11 +2,13 @@ import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron/simple";
+import { stubNodeBuiltins } from "./vite-plugins/stubNodeBuiltins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [
 		react(),
+		stubNodeBuiltins(),
 		electron({
 			main: {
 				entry: "electron/main.ts",
@@ -47,10 +49,12 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ["@xenova/transformers", "@huggingface/transformers", "kokoro-js"],
 	},
-	// The captioning worker dynamically imports @xenova/transformers, which makes the
-	// worker bundle code-split — unsupported by the default "iife" worker format.
+	// The captioning worker dynamically imports @xenova/transformers, and the TTS worker
+	// imports kokoro-js (which has bare Node imports). Worker bundles code-split and need
+	// the stubNodeBuiltins plugin to rewrite kokoro-js imports.
 	worker: {
 		format: "es",
+		plugins: () => [stubNodeBuiltins()],
 	},
 	build: {
 		target: "esnext",

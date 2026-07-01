@@ -1,51 +1,7 @@
 import path from "node:path";
 import { playwright } from "@vitest/browser-playwright";
-import { defineConfig, type Plugin } from "vitest/config";
-
-// Plugin to stub Node builtins imported by kokoro-js and transformers
-function stubNodeBuiltins(): Plugin {
-	const stubPath = path.resolve(__dirname, "src/lib/vite-stubs/empty-node-module.ts");
-	const ortStubPath = path.resolve(__dirname, "src/lib/vite-stubs/onnxruntime-node-stub.ts");
-	const stubs = new Set([
-		"fs",
-		"path",
-		"url",
-		"node:fs",
-		"node:path",
-		"node:url",
-		"fs/promises",
-		"node:fs/promises",
-	]);
-	return {
-		name: "stub-node-builtins",
-		enforce: "pre",
-		resolveId(id, importer) {
-			if (stubs.has(id)) {
-				return stubPath;
-			}
-			if (id === "onnxruntime-node") {
-				return ortStubPath;
-			}
-		},
-		transform(code, id) {
-			// Rewrite imports within kokoro-js to point to our stubs
-			if (id.includes("kokoro-js")) {
-				let transformed = code;
-				transformed = transformed.replace(
-					/import\s+(\w+)\s+from\s*["']fs\/promises["']/g,
-					`import $1 from "${stubPath}"`,
-				);
-				transformed = transformed.replace(
-					/import\s+(\w+)\s+from\s*["']path["']/g,
-					`import $1 from "${stubPath}"`,
-				);
-				if (transformed !== code) {
-					return { code: transformed, map: null };
-				}
-			}
-		},
-	};
-}
+import { defineConfig } from "vitest/config";
+import { stubNodeBuiltins } from "./vite-plugins/stubNodeBuiltins";
 
 export default defineConfig({
 	plugins: [stubNodeBuiltins()],
@@ -87,10 +43,12 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ["@xenova/transformers", "@huggingface/transformers", "kokoro-js"],
 	},
-	// The captioning worker dynamically imports @xenova/transformers, which makes the
-	// worker bundle code-split — unsupported by the default "iife" worker format.
+	// The captioning worker dynamically imports @xenova/transformers, and the TTS worker
+	// imports kokoro-js (which has bare Node imports). Worker bundles code-split and need
+	// the stubNodeBuiltins plugin to rewrite kokoro-js imports.
 	worker: {
 		format: "es",
+		plugins: () => [stubNodeBuiltins()],
 	},
 	assetsInclude: ["**/*.webm"],
 });
