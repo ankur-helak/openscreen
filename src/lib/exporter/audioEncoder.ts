@@ -1,5 +1,7 @@
 import { WebDemuxer } from "web-demuxer";
 import type { SpeedRegion, TrimRegion } from "@/components/video-editor/types";
+import { buildVoiceoverBedMono } from "@/lib/voiceover/bed";
+import type { PlacedClip } from "@/lib/voiceover/layout";
 import type { ExportAudioMuxerCodec, VideoMuxer } from "./muxer";
 
 const AUDIO_BITRATE = 128_000;
@@ -152,6 +154,27 @@ export function downmixPlanarChannelsForExport(
 		output[frameCount + frame] = weightedSample(sourcePlanes, frame, weights.right);
 	}
 	return output;
+}
+
+/** Resample mono PCM via OfflineAudioContext (same technique as captioning's extractMono16k). */
+export async function resampleMonoPcm(
+	mono: Float32Array,
+	fromRate: number,
+	toRate: number,
+): Promise<Float32Array> {
+	if (fromRate === toRate) return mono;
+	if (mono.length === 0) return mono;
+	const durationSec = mono.length / fromRate;
+	const outLength = Math.max(1, Math.ceil(durationSec * toRate));
+	const offline = new OfflineAudioContext(1, outLength, toRate);
+	const buf = offline.createBuffer(1, mono.length, fromRate);
+	buf.copyToChannel(Float32Array.from(mono), 0);
+	const src = offline.createBufferSource();
+	src.buffer = buf;
+	src.connect(offline.destination);
+	src.start(0);
+	const rendered = await offline.startRendering();
+	return rendered.getChannelData(0).slice();
 }
 
 export class AudioProcessor {
@@ -817,6 +840,96 @@ export class AudioProcessor {
 			}
 		}
 		return offset;
+	}
+
+	/**
+	 * Replace-mode audio: build a silent stereo track of the output duration, place each
+	 * generated clip (resampled to the export rate) at its output-time start via the shared
+	 * bed builder, then chunk-encode with WebCodecs and mux. Original source audio is ignored.
+	 */
+	async synthesizeVoiceoverTrack(
+		placedClips: PlacedClip[],
+		clipPcmByKey: Record<string, { pcm: Float32Array; sampleRate: number }>,
+		outputDurationMs: number,
+		exportCodec: ExportAudioCodec,
+		muxer: VideoMuxer,
+	): Promise<void> {
+		if (this.cancelled) return;
+
+		const sampleRate = exportCodec.sampleRate;
+		const channels = exportCodec.numberOfChannels;
+		const totalSamples = Math.max(0, Math.ceil((outputDurationMs / 1000) * sampleRate));
+		if (totalSamples === 0) return;
+
+		// Resample each distinct clip to the export rate once.
+		const clipSamplesByKey: Record<string, Float32Array> = {};
+		for (const clip of placedClips) {
+			if (this.cancelled) return;
+			if (clipSamplesByKey[clip.audioKey]) continue;
+			const resolved = clipPcmByKey[clip.audioKey];
+			if (!resolved) continue;
+			clipSamplesByKey[clip.audioKey] = await resampleMonoPcm(
+				resolved.pcm,
+				resolved.sampleRate,
+				sampleRate,
+			);
+		}
+		if (this.cancelled) return;
+
+		const bed = buildVoiceoverBedMono({ placedClips, clipSamplesByKey, sampleRate, totalSamples });
+
+		const encodeConfig: AudioEncoderConfig = {
+			codec: exportCodec.encoderCodec,
+			sampleRate,
+			numberOfChannels: channels,
+			bitrate: AUDIO_BITRATE,
+		};
+		const support = await AudioEncoder.isConfigSupported(encodeConfig);
+		if (!support.supported) {
+			console.warn("[AudioProcessor] Voiceover audio codec not supported, skipping audio");
+			return;
+		}
+
+		const encodedChunks: { chunk: EncodedAudioChunk; meta?: EncodedAudioChunkMetadata }[] = [];
+		const encoder = new AudioEncoder({
+			output: (chunk, meta) => encodedChunks.push({ chunk, meta }),
+			error: (e: DOMException) => console.error("[AudioProcessor] Voiceover encode error:", e),
+		});
+		encoder.configure(encodeConfig);
+
+		// Emit ~0.1s planar frames, duplicating mono into each channel.
+		const frameSize = Math.max(1, Math.round(sampleRate / 10));
+		for (let offset = 0; offset < totalSamples && !this.cancelled; offset += frameSize) {
+			const frames = Math.min(frameSize, totalSamples - offset);
+			const planar = new Float32Array(frames * channels);
+			for (let ch = 0; ch < channels; ch++) {
+				planar.set(bed.subarray(offset, offset + frames), ch * frames);
+			}
+			const audioData = new AudioData({
+				format: "f32-planar",
+				sampleRate,
+				numberOfFrames: frames,
+				numberOfChannels: channels,
+				timestamp: Math.round((offset / sampleRate) * 1_000_000),
+				data: planar.buffer,
+			});
+			encoder.encode(audioData);
+			audioData.close();
+		}
+
+		if (encoder.state === "configured") {
+			await encoder.flush();
+			encoder.close();
+		}
+		if (this.cancelled) return;
+
+		for (const { chunk, meta } of encodedChunks) {
+			if (this.cancelled) break;
+			await muxer.addAudioChunk(chunk, meta);
+		}
+		console.info(
+			`[AudioProcessor] Voiceover track: ${placedClips.length} clips, ${encodedChunks.length} chunks`,
+		);
 	}
 
 	cancel(): void {
