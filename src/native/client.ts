@@ -1,4 +1,5 @@
 import {
+	type CaptionDraftResult,
 	type CursorCapabilities,
 	type CursorRecordingData,
 	type CursorTelemetryPoint,
@@ -10,6 +11,7 @@ import {
 	type ProjectFileResult,
 	type ProjectPathResult,
 	type SystemCapabilities,
+	type TranscriptCacheResult,
 } from "./contracts";
 
 function createRequestId() {
@@ -116,6 +118,38 @@ export const nativeBridgeClient = {
 			requireNativeBridgeData<ProjectPathResult>({
 				domain: "project",
 				action: "clearCurrentVideoPath",
+			}),
+	},
+	transcript: {
+		getTranscript: (sourcePath: string) =>
+			requireNativeBridgeData<TranscriptCacheResult>({
+				domain: "transcript",
+				action: "getTranscript",
+				payload: { sourcePath },
+			}),
+		putTranscript: (sourcePath: string, transcript: unknown) =>
+			requireNativeBridgeData<TranscriptCacheResult>({
+				domain: "transcript",
+				action: "putTranscript",
+				payload: { sourcePath, transcript },
+			}),
+		getCaptionDraft: (sourcePath: string) =>
+			requireNativeBridgeData<CaptionDraftResult>({
+				domain: "transcript",
+				action: "getCaptionDraft",
+				payload: { sourcePath },
+			}),
+		putCaptionDraft: (sourcePath: string, regions: unknown) =>
+			requireNativeBridgeData<CaptionDraftResult>({
+				domain: "transcript",
+				action: "putCaptionDraft",
+				payload: { sourcePath, regions },
+			}),
+		clearCaptionDraft: (sourcePath: string) =>
+			requireNativeBridgeData<CaptionDraftResult>({
+				domain: "transcript",
+				action: "clearCaptionDraft",
+				payload: { sourcePath },
 			}),
 	},
 	cursor: {

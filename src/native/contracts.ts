@@ -90,6 +90,20 @@ export interface ProjectFileResult {
 	error?: string;
 }
 
+export interface TranscriptCacheResult {
+	success: boolean;
+	/** Serialized `Transcript` when present; `undefined`/absent on a cache miss. */
+	transcript?: unknown;
+	message?: string;
+}
+
+export interface CaptionDraftResult {
+	success: boolean;
+	/** Serialized `AnnotationRegion[]` when present; absent when no draft exists. */
+	regions?: unknown;
+	message?: string;
+}
+
 export type NativeBridgeErrorCode =
 	| "INVALID_REQUEST"
 	| "UNSUPPORTED_ACTION"
@@ -202,6 +216,36 @@ export type NativeBridgeRequest =
 			domain: "project";
 			action: "clearCurrentVideoPath";
 			payload?: EmptyPayload;
+			requestId?: string;
+	  }
+	| {
+			domain: "transcript";
+			action: "getTranscript";
+			payload: { sourcePath: string };
+			requestId?: string;
+	  }
+	| {
+			domain: "transcript";
+			action: "putTranscript";
+			payload: { sourcePath: string; transcript: unknown };
+			requestId?: string;
+	  }
+	| {
+			domain: "transcript";
+			action: "getCaptionDraft";
+			payload: { sourcePath: string };
+			requestId?: string;
+	  }
+	| {
+			domain: "transcript";
+			action: "putCaptionDraft";
+			payload: { sourcePath: string; regions: unknown };
+			requestId?: string;
+	  }
+	| {
+			domain: "transcript";
+			action: "clearCaptionDraft";
+			payload: { sourcePath: string };
 			requestId?: string;
 	  }
 	| {
