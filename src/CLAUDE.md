@@ -26,16 +26,18 @@ This is the **React renderer**. The authoritative conventions guide is
 - `contexts/` — Context is reserved for cross-cutting concerns only (`I18nContext`,
   `ShortcutsContext`); don't add a store to avoid prop-drilling.
 - `lib/` — the core engine: `exporter/` (MP4/GIF pipeline via WebCodecs / `pixi.js` /
-  `mediabunny` / `mp4box`), `captioning/` (on-device `@xenova/transformers` in a worker — see the
+  `mediabunny` / `mp4box`; includes voiceover replace-mode audio path via
+  `synthesizeVoiceoverTrack`), `captioning/` (on-device `@xenova/transformers` in a worker — see the
   Vite stubs in `lib/vite-stubs/`), `transcription/` (provider-abstracted transcript generation
   wrapping `captioning/`; Whisper default, cached per-video via the native bridge), `cursor/`,
-  `voiceover/` (pure `layoutVoiceover` output-time alignment for preview/export). Classes for
-  stateful pipelines, pure functions for transforms.
+  `voiceover/` (`layoutVoiceover` output-time alignment consumed by preview + export; shared
+  `bed.ts` mono-bed builder). Classes for stateful pipelines, pure functions for transforms.
 - `native/` — the renderer **facade for the native bridge** (`client.ts`, `contracts.ts`). Call
   through `nativeBridgeClient.*` (includes `nativeBridgeClient.transcript.*` for transcript cache +
   caption drafts), not raw IPC.
 - `hooks/` (`useXxx`, including `useTranscript` for auto-generating + caching transcripts on video
-  load, `useClipAudition` for standalone single-clip audition), `utils/`, `i18n/`, `assets/`.
+  load, `useClipAudition` for standalone single-clip audition, `useVoiceoverPlayback` for
+  timeline-synced voiceover preview), `utils/`, `i18n/`, `assets/`.
 
 ## Conventions worth remembering
 
