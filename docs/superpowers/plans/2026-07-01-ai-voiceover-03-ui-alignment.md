@@ -809,12 +809,14 @@ it("generateSegment ignores a re-entrant call while a segment is synthesizing", 
 	});
 });
 
-it("generateAll marks pending segments queued before synthesizing them", async () => {
-	const seen: string[] = [];
-	const synthesize = vi.fn(async () => {
-		seen.push("synth");
-		return { pcm: new Float32Array([0.1]), sampleRate: 24000 };
-	});
+it("generateAll marks a not-yet-started segment queued while the first synthesizes", async () => {
+	const deferreds: Array<(v: { pcm: Float32Array; sampleRate: number }) => void> = [];
+	const synthesize = vi.fn(
+		() =>
+			new Promise<{ pcm: Float32Array; sampleRate: number }>((res) => {
+				deferreds.push(res);
+			}),
+	);
 	const provider = { id: "test", listVoices: async () => [], synthesize } as unknown as TtsProvider;
 	const config: VoiceoverConfig = {
 		...DEFAULT_VOICEOVER_CONFIG,
@@ -827,15 +829,30 @@ it("generateAll marks pending segments queued before synthesizing them", async (
 	const { result } = renderHook(() =>
 		useVoiceover({ config, transcript: null, onChange: () => {}, provider }),
 	);
+
 	await act(async () => {
-		await result.current.generateAll();
+		void result.current.generateAll();
+		await Promise.resolve();
+	});
+	// First segment is synthesizing; the second must be QUEUED (not yet started) — this is the
+	// behavior generateAll newly produces.
+	expect(result.current.statuses["vo-1"].state).toBe("synthesizing");
+	expect(result.current.statuses["vo-2"].state).toBe("queued");
+
+	await act(async () => {
+		deferreds[0]({ pcm: new Float32Array([0.1]), sampleRate: 24000 });
+		await Promise.resolve();
+		await Promise.resolve();
+		deferreds[1]?.({ pcm: new Float32Array([0.2]), sampleRate: 24000 });
+		await Promise.resolve();
 	});
 	expect(synthesize).toHaveBeenCalledTimes(2);
-	// Both ended ready; queued was an intermediate state (asserted via no double-synthesis + guard test above).
 	expect(result.current.statuses["vo-1"].state).toBe("ready");
 	expect(result.current.statuses["vo-2"].state).toBe("ready");
 });
 ```
+
+> The microtask flushing (`await Promise.resolve()`) may need light tuning so the assertions observe the intended intermediate states under React 18 `act` — adjust the number of flushes if needed, but keep the two intermediate assertions (`vo-1` synthesizing, `vo-2` queued): verifying the `queued` state is the point of this test.
 
 > If the existing test file does not already import `act`, `renderHook`, `DEFAULT_VOICEOVER_CONFIG`, `TtsProvider`, or `VoiceoverConfig`, add those imports (`act`/`renderHook` from `@testing-library/react`, the rest from their Plan-2 modules) to match the file's current style.
 
@@ -1986,7 +2003,7 @@ Add a project-wide `"voiceover"` mode to the nav rail; render `<VoiceoverPanel>`
 
 **Interfaces:**
 - Consumes: `VoiceoverPanel`, `VoiceoverPanelProps` (Task 6); `AudioLines` icon from `lucide-react`.
-- Produces: new `SettingsPanelProps` fields: `voiceoverPanelProps: VoiceoverPanelProps`, `selectedVoiceoverSegmentId: string | null`, `onClearVoiceoverSelection: () => void`.
+- Produces: new **optional** `SettingsPanelProps` fields: `voiceoverPanelProps?: VoiceoverPanelProps`, `selectedVoiceoverSegmentId?: string | null`, `onClearVoiceoverSelection?: () => void`. They are optional so this task keeps `tsc` green on its own; Task 9 supplies them at the `VideoEditor` call site.
 
 - [ ] **Step 1: Extend the mode union and props**
 
@@ -1999,11 +2016,11 @@ type SettingsPanelMode = "background" | "effects" | "layout" | "cursor" | "expor
 import { AudioLines } from "lucide-react";
 import { VoiceoverPanel, type VoiceoverPanelProps } from "./VoiceoverPanel";
 ```
-(c) Add to `SettingsPanelProps` (wherever the interface is declared):
+(c) Add to `SettingsPanelProps` (wherever the interface is declared) — **optional**, so this task builds green before Task 9 wires the call site:
 ```ts
-	voiceoverPanelProps: VoiceoverPanelProps;
-	selectedVoiceoverSegmentId: string | null;
-	onClearVoiceoverSelection: () => void;
+	voiceoverPanelProps?: VoiceoverPanelProps;
+	selectedVoiceoverSegmentId?: string | null;
+	onClearVoiceoverSelection?: () => void;
 ```
 (d) Destructure the three new props in the component signature alongside the others.
 
@@ -2034,23 +2051,20 @@ In the nav-rail button `onClick` (~line 845-848), clear any voiceover selection 
 ```ts
 									onClick={() => {
 										if (mode.id === "layout" && mode.disabled) return;
-										onClearVoiceoverSelection();
+										onClearVoiceoverSelection?.();
 										setActivePanelMode(mode.id);
 									}}
 ```
 
 - [ ] **Step 5: Render the panel in the content area**
 
-Inside the main content `<div className="flex-1 overflow-y-auto …">` (after the header at ~line 892, alongside the other `activePanelMode === …` blocks), add:
+Inside the main content `<div className="flex-1 overflow-y-auto …">` (after the header at ~line 892, alongside the other `activePanelMode === …` blocks), add — guarded on `voiceoverPanelProps` being present (it's optional until Task 9):
 ```tsx
-						{showVoiceoverPanel && (
-							<VoiceoverPanel
-								{...voiceoverPanelProps}
-								selectedSegmentId={props.selectedVoiceoverSegmentId}
-							/>
+						{showVoiceoverPanel && voiceoverPanelProps && (
+							<VoiceoverPanel {...voiceoverPanelProps} />
 						)}
 ```
-> `voiceoverPanelProps` already carries `selectedSegmentId`; the explicit override just guarantees `SettingsPanel`'s prop wins if `VideoEditor` passes it separately. If you thread a single object, drop the override and let `voiceoverPanelProps.selectedSegmentId` flow through.
+> `voiceoverPanelProps` already carries `selectedSegmentId` (set by `VideoEditor` in Task 9), so no override is needed. The `&& voiceoverPanelProps` guard keeps the spread type-safe while the prop is optional.
 
 - [ ] **Step 6: Include voiceover in the active-mode label**
 
@@ -2070,7 +2084,7 @@ Run:
 ```bash
 npx tsc --noEmit
 ```
-Expected: FAIL — `SettingsPanel` is now missing required props at its call site in `VideoEditor.tsx` (fixed in Task 9). This confirms the new required props are wired. (If you prefer a clean typecheck between tasks, temporarily make the three new props optional; Task 9 makes them required by supplying them — but leaving them required is fine since Task 9 immediately follows.)
+Expected: exit 0. The three new `SettingsPanelProps` fields are **optional**, so the existing `<SettingsPanel …>` call site in `VideoEditor.tsx` still type-checks without them; Task 9 supplies them. The voiceover nav-rail button will be visible but render nothing until Task 9 wires `voiceoverPanelProps` — that's the expected intermediate state.
 
 - [ ] **Step 8: Commit**
 
