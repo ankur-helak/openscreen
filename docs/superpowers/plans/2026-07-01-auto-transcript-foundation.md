@@ -1161,6 +1161,37 @@ git commit -m "feat(transcription): auto-transcribe on load, reuse in auto-capti
 
 ---
 
+## Task 7: Update project docs (CLAUDE.md files)
+
+Per the repo's maintenance convention (root `CLAUDE.md`): when a folder's structure/conventions/architecture change, update that folder's `CLAUDE.md` in the same change. This feature adds a new `src/lib/transcription/` module, a `useTranscript` hook, a native-bridge `transcript` domain, and two `userData` dirs — so the folder docs must reflect that.
+
+**Files:**
+- Modify: `src/CLAUDE.md`
+- Modify: `electron/CLAUDE.md`
+
+**Interfaces:** Docs only — no code.
+
+- [ ] **Step 1: Update `src/CLAUDE.md`.**
+  - In the `lib/` bullet, add `transcription/` alongside `exporter/`, `captioning/`, `cursor/` — one clause: "`transcription/` (provider-abstracted transcript generation wrapping `captioning/`; Whisper default, cached per-video via the native bridge)".
+  - In the `hooks/` mention, note `useTranscript` (auto-generates + caches the transcript on video load).
+  - In the `native/` bullet, note the new `nativeBridgeClient.transcript.*` facade (transcript cache + caption drafts).
+
+- [ ] **Step 2: Update `electron/CLAUDE.md`.**
+  - In the native-bridge section, add the `transcript` domain/service to the list of services (`services/transcriptService.ts` — fs-backed sidecar transcript cache + caption autosave drafts under `userData/transcripts/` and `userData/caption-drafts/`, keyed by a video stat signature).
+
+- [ ] **Step 3: Verify no stale references** — reread both edits; confirm they match the code shipped in Tasks 1–6 (module path, hook name, client method names, service filename, dir names).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/CLAUDE.md electron/CLAUDE.md
+git commit -m "docs: document transcription module + native-bridge transcript domain"
+```
+
+Note: these `CLAUDE.md` files are currently untracked; committing here brings them under version control on this branch. Confirm with the human if they should stay untracked instead.
+
+---
+
 ## Self-Review
 
 **Spec coverage:**
