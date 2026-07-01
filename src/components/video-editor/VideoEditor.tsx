@@ -622,7 +622,7 @@ export default function VideoEditor() {
 		}
 
 		loadInitialData();
-	}, [applyLoadedProject]);
+	}, [applyLoadedProject, updateState]);
 
 	// Avoid overwriting saved prefs with defaults before they've loaded.
 	const [prefsHydrated, setPrefsHydrated] = useState(false);
@@ -2334,7 +2334,7 @@ export default function VideoEditor() {
 				setIsAutoCaptioning(false);
 			}
 		},
-		[ensureTranscript, videoPath, trimRegions, pushState, t],
+		[ensureTranscript, pushState, t, videoPath],
 	);
 
 	const handleSaveDiagnostic = useCallback(async () => {
