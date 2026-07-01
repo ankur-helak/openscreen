@@ -15,6 +15,7 @@ import { CursorService } from "../native-bridge/services/cursorService";
 import { ProjectService } from "../native-bridge/services/projectService";
 import { SystemService } from "../native-bridge/services/systemService";
 import { TranscriptService } from "../native-bridge/services/transcriptService";
+import { VoiceoverService } from "../native-bridge/services/voiceoverService";
 import { NativeBridgeStateStore } from "../native-bridge/store";
 
 export interface NativeBridgeContext {
@@ -40,6 +41,7 @@ export interface NativeBridgeContext {
 	loadCursorTelemetry: (videoPath: string) => Promise<CursorTelemetryLoadResult>;
 	getTranscriptCacheDir: () => string;
 	getCaptionDraftsDir: () => string;
+	getVoiceoverCacheDir: () => string;
 }
 
 function normalizePlatform(platform: NodeJS.Platform): NativePlatform {
@@ -121,6 +123,9 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 		cacheDir: context.getTranscriptCacheDir(),
 		draftsDir: context.getCaptionDraftsDir(),
 		resolveSourcePath: (sourcePath: string) => context.resolveVideoPath(sourcePath),
+	});
+	const voiceoverService = new VoiceoverService({
+		cacheDir: context.getVoiceoverCacheDir(),
 	});
 	const systemService = new SystemService({
 		store,
@@ -267,6 +272,32 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 								requestId,
 								"UNSUPPORTED_ACTION",
 								`Unsupported transcript action: ${action}`,
+							);
+					}
+				}
+
+				case "voiceover": {
+					const action = request.action as string;
+					switch (request.action) {
+						case "getVoiceoverClip":
+							return createSuccessResponse(
+								requestId,
+								await voiceoverService.getClip(request.payload.key),
+							);
+						case "putVoiceoverClip":
+							return createSuccessResponse(
+								requestId,
+								await voiceoverService.putClip(
+									request.payload.key,
+									request.payload.pcm,
+									request.payload.sampleRate,
+								),
+							);
+						default:
+							return createErrorResponse(
+								requestId,
+								"UNSUPPORTED_ACTION",
+								`Unsupported voiceover action: ${action}`,
 							);
 					}
 				}

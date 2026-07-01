@@ -2914,5 +2914,6 @@ export function registerIpcHandlers(
 		loadCursorTelemetry: readCursorTelemetryFile,
 		getTranscriptCacheDir: () => path.join(app.getPath("userData"), "transcripts"),
 		getCaptionDraftsDir: () => path.join(app.getPath("userData"), "caption-drafts"),
+		getVoiceoverCacheDir: () => path.join(app.getPath("userData"), "voiceovers"),
 	});
 }

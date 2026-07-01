@@ -12,6 +12,7 @@ import {
 	type ProjectPathResult,
 	type SystemCapabilities,
 	type TranscriptCacheResult,
+	type VoiceoverClipResult,
 } from "./contracts";
 
 function createRequestId() {
@@ -150,6 +151,20 @@ export const nativeBridgeClient = {
 				domain: "transcript",
 				action: "clearCaptionDraft",
 				payload: { sourcePath },
+			}),
+	},
+	voiceover: {
+		getClip: (key: string) =>
+			requireNativeBridgeData<VoiceoverClipResult>({
+				domain: "voiceover",
+				action: "getVoiceoverClip",
+				payload: { key },
+			}),
+		putClip: (key: string, pcm: ArrayBuffer, sampleRate: number) =>
+			requireNativeBridgeData<VoiceoverClipResult>({
+				domain: "voiceover",
+				action: "putVoiceoverClip",
+				payload: { key, pcm, sampleRate },
 			}),
 	},
 	cursor: {

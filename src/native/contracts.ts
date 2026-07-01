@@ -104,6 +104,15 @@ export interface CaptionDraftResult {
 	message?: string;
 }
 
+export interface VoiceoverClipResult {
+	success: boolean;
+	/** Mono Float32 PCM as an ArrayBuffer when present; absent on a cache miss. */
+	pcm?: ArrayBuffer;
+	/** Sample rate of the cached PCM (Kokoro: 24000). */
+	sampleRate?: number;
+	message?: string;
+}
+
 export type NativeBridgeErrorCode =
 	| "INVALID_REQUEST"
 	| "UNSUPPORTED_ACTION"
@@ -246,6 +255,18 @@ export type NativeBridgeRequest =
 			domain: "transcript";
 			action: "clearCaptionDraft";
 			payload: { sourcePath: string };
+			requestId?: string;
+	  }
+	| {
+			domain: "voiceover";
+			action: "getVoiceoverClip";
+			payload: { key: string };
+			requestId?: string;
+	  }
+	| {
+			domain: "voiceover";
+			action: "putVoiceoverClip";
+			payload: { key: string; pcm: ArrayBuffer; sampleRate: number };
 			requestId?: string;
 	  }
 	| {
