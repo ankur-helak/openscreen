@@ -23,16 +23,13 @@ import {
 import { useI18n, useScopedT } from "@/contexts/I18nContext";
 import { useShortcuts } from "@/contexts/ShortcutsContext";
 import { INITIAL_EDITOR_STATE, useEditorHistory } from "@/hooks/useEditorHistory";
+import { useTranscript } from "@/hooks/useTranscript";
 import { type Locale } from "@/i18n/config";
 import { getAvailableLocales, getLocaleName } from "@/i18n/loader";
 import {
 	captionSegmentsToAnnotationRegions,
-	extractMono16kFromVideoUrl,
 	MAX_CAPTION_AUDIO_SEC,
 	reconcileAutoCaptionTimelineGaps,
-	shiftTrimRegionsMsForCaptionBuffer,
-	transcribeMono16kToSegments,
-	trimLeadingSilenceMono16k,
 } from "@/lib/captioning";
 import { hasNativeCursorRecordingData } from "@/lib/cursor/nativeCursor";
 import {
@@ -317,6 +314,20 @@ export default function VideoEditor() {
 
 	const nextAnnotationIdRef = useRef(1);
 	const nextAnnotationZIndexRef = useRef(1);
+	const {
+		transcript,
+		status: transcriptStatus,
+		ensureTranscript,
+	} = useTranscript({
+		videoUrl: videoPath,
+		sourcePath: videoSourcePath ?? (videoPath ? fromFileUrl(videoPath) : null),
+		trimRegions,
+	});
+	// Referenced by the caption flow; keeps lints quiet until a transcript UI lands.
+	void transcript;
+	void transcriptStatus;
+	const transcriptStatusRef = useRef(transcriptStatus);
+	transcriptStatusRef.current = transcriptStatus;
 	const isAutoCaptioningRef = useRef(false);
 	const [isAutoCaptioning, setIsAutoCaptioning] = useState(false);
 	const [showAutoCaptionsDialog, setShowAutoCaptionsDialog] = useState(false);
@@ -588,6 +599,18 @@ export default function VideoEditor() {
 					setLastSavedSnapshot(
 						createProjectSnapshot({ screenVideoPath: result.path }, INITIAL_EDITOR_STATE),
 					);
+					void nativeBridgeClient.transcript
+						.getCaptionDraft(result.path)
+						.then((draft) => {
+							if (draft.success && Array.isArray(draft.regions) && draft.regions.length > 0) {
+								updateState({ annotationRegions: draft.regions as AnnotationRegion[] });
+								nextAnnotationIdRef.current = deriveNextId(
+									"annotation",
+									(draft.regions as AnnotationRegion[]).map((r) => r.id),
+								);
+							}
+						})
+						.catch((err) => console.warn("[VideoEditor] caption draft restore failed:", err));
 				}
 				// No video/project/session, so leave videoPath null and let the
 				// EditorEmptyState dashboard render instead of an error screen.
@@ -621,6 +644,21 @@ export default function VideoEditor() {
 		if (!prefsHydrated) return;
 		saveUserPreferences({ padding, aspectRatio, exportQuality, exportFormat });
 	}, [prefsHydrated, padding, aspectRatio, exportQuality, exportFormat]);
+
+	// Autosave auto-caption regions to a userData draft so caption work isn't lost before an
+	// explicit project save. Keyed to the video; superseded/cleared after a successful save.
+	useEffect(() => {
+		const source = videoSourcePath ?? (videoPath ? fromFileUrl(videoPath) : null);
+		if (!source) return;
+		const captionRegions = annotationRegions.filter((r) => r.annotationSource === "auto-caption");
+		if (captionRegions.length === 0) return;
+		const handle = setTimeout(() => {
+			void nativeBridgeClient.transcript
+				.putCaptionDraft(source, captionRegions)
+				.catch((err) => console.warn("[VideoEditor] caption draft autosave failed:", err));
+		}, 800);
+		return () => clearTimeout(handle);
+	}, [annotationRegions, videoSourcePath, videoPath]);
 
 	const saveProject = useCallback(
 		async (forceSaveAs: boolean) => {
@@ -693,6 +731,13 @@ export default function VideoEditor() {
 				setCurrentProjectPath(result.path);
 			}
 			setLastSavedSnapshot(projectSnapshot);
+
+			const savedSource = currentProjectMedia.screenVideoPath;
+			if (savedSource) {
+				void nativeBridgeClient.transcript
+					.clearCaptionDraft(savedSource)
+					.catch((err) => console.warn("[VideoEditor] clear caption draft failed:", err));
+			}
 
 			toast.success(t("project.savedTo", { path: result.path ?? "" }));
 			return true;
@@ -2221,64 +2266,20 @@ export default function VideoEditor() {
 			setIsAutoCaptioning(true);
 			toast.loading(t("autoCaptions.generating"), { id: AUTO_CAPTION_PROGRESS_TOAST_ID });
 			try {
-				const { samples, truncated, durationSec } = await extractMono16kFromVideoUrl(videoPath);
-				if (!Number.isFinite(durationSec) || durationSec <= 0 || samples.length < 800) {
+				const ready = await ensureTranscript();
+				if (!ready) {
 					toast.dismiss(AUTO_CAPTION_PROGRESS_TOAST_ID);
-					toast.error(t("autoCaptions.noAudio"));
+					// Distinguish no-audio from no-speech using the hook's status set by ensureTranscript.
+					toast[transcriptStatusRef.current.state === "no-audio" ? "error" : "info"](
+						transcriptStatusRef.current.state === "no-audio"
+							? t("autoCaptions.noAudio")
+							: t("autoCaptions.noneHeard"),
+					);
 					return;
 				}
-
-				const { samples: speechSamples, trimSec } = trimLeadingSilenceMono16k(samples);
-				if (speechSamples.length < 800) {
-					toast.dismiss(AUTO_CAPTION_PROGRESS_TOAST_ID);
-					toast.error(t("autoCaptions.noAudio"));
-					return;
-				}
-
-				const trimMs = Math.round(trimSec * 1000);
-				const trimRegionsForTranscribe = shiftTrimRegionsMsForCaptionBuffer(trimRegions, trimMs);
-
-				const transcribeOptions = {
-					onStatus: (phase: "model" | "transcribe") => {
-						if (phase === "model") {
-							toast.loading(t("autoCaptions.loadingModel"), {
-								id: AUTO_CAPTION_PROGRESS_TOAST_ID,
-							});
-						} else {
-							toast.loading(t("autoCaptions.transcribing"), {
-								id: AUTO_CAPTION_PROGRESS_TOAST_ID,
-							});
-						}
-					},
-				};
-
-				let { segments: segmentsRaw, granularity } = await transcribeMono16kToSegments(
-					speechSamples,
-					{
-						trimRegions: trimRegionsForTranscribe,
-						...transcribeOptions,
-					},
-				);
-				let transcribedFromTrimmedBuffer = true;
-
-				// Leading-silence trimming can return empty even when the full source has
-				// speech. Retry once against the untrimmed buffer before giving up.
-				if (segmentsRaw.length === 0 && trimSec > 0) {
-					({ segments: segmentsRaw, granularity } = await transcribeMono16kToSegments(samples, {
-						trimRegions,
-						...transcribeOptions,
-					}));
-					transcribedFromTrimmedBuffer = false;
-				}
-
-				const segments =
-					transcribedFromTrimmedBuffer && trimSec > 0
-						? segmentsRaw.map((s) => ({
-								...s,
-								startSec: s.startSec + trimSec,
-								endSec: s.endSec + trimSec,
-							}))
-						: segmentsRaw;
+				const segments = ready.segments;
+				const granularity = ready.granularity;
+				const truncated = ready.truncated;
 
 				let { regions, nextNumericId, nextZIndex } = captionSegmentsToAnnotationRegions(
 					segments,
