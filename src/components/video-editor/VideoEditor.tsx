@@ -57,6 +57,8 @@ import {
 	parentDirectoryOf,
 	saveUserPreferences,
 } from "@/lib/userPreferences";
+import { type LayoutClipInput, layoutVoiceover } from "@/lib/voiceover/layout";
+import type { VoiceoverConfig } from "@/lib/voiceover/types";
 import { BackgroundLoadError } from "@/lib/wallpaper";
 import { nativeBridgeClient, useCursorRecordingData, useCursorTelemetry } from "@/native";
 import type { NativePlatform } from "@/native/contracts";
@@ -313,6 +315,7 @@ export default function VideoEditor() {
 	const { locale, setLocale, t: rawT } = useI18n();
 	const t = useScopedT("editor");
 	const ts = useScopedT("settings");
+	const voT = useScopedT("voiceover");
 	const availableLocales = getAvailableLocales();
 
 	const nextAnnotationIdRef = useRef(1);
@@ -334,6 +337,12 @@ export default function VideoEditor() {
 
 	const [selectedVoiceoverSegmentId, setSelectedVoiceoverSegmentId] = useState<string | null>(null);
 
+	const handleVoiceoverChange = useCallback(
+		(updater: (prev: VoiceoverConfig) => VoiceoverConfig) =>
+			pushState((prev) => ({ voiceover: updater(prev.voiceover) })),
+		[pushState],
+	);
+
 	const {
 		statuses: voiceoverStatuses,
 		clips: voiceoverClips,
@@ -344,7 +353,7 @@ export default function VideoEditor() {
 	} = useVoiceover({
 		config: voiceover,
 		transcript,
-		onChange: (updater) => pushState((prev) => ({ voiceover: updater(prev.voiceover) })),
+		onChange: handleVoiceoverChange,
 	});
 
 	// Seed the script the first time voiceover is enabled with an empty script and a ready transcript.
@@ -353,6 +362,24 @@ export default function VideoEditor() {
 			seedVoiceover();
 		}
 	}, [voiceover.enabled, voiceover.segments.length, transcript, seedVoiceover]);
+
+	const voiceoverPlacedClips = useMemo(() => {
+		if (!voiceover.enabled) return [];
+		const clipsById: Record<string, LayoutClipInput> = {};
+		for (const seg of voiceover.segments) {
+			const status = voiceoverStatuses[seg.id];
+			if (status?.state === "ready") {
+				clipsById[seg.id] = { audioKey: status.audioKey, durationMs: status.durationMs };
+			}
+		}
+		return layoutVoiceover({
+			segments: voiceover.segments,
+			clipsById,
+			trims: trimRegions,
+			speedRegions,
+		});
+	}, [voiceover.enabled, voiceover.segments, voiceoverStatuses, trimRegions, speedRegions]);
+
 	const isAutoCaptioningRef = useRef(false);
 	const [isAutoCaptioning, setIsAutoCaptioning] = useState(false);
 	const [showAutoCaptionsDialog, setShowAutoCaptionsDialog] = useState(false);
@@ -2094,6 +2121,10 @@ export default function VideoEditor() {
 						aspectRatioValue,
 					});
 
+					if (voiceover.enabled && voiceoverPlacedClips.length === 0) {
+						toast.warning(voT("export.noClipsWarning"));
+					}
+
 					const exporter = new VideoExporter({
 						videoUrl: videoPath,
 						webcamVideoUrl: webcamVideoPath || undefined,
@@ -2106,6 +2137,13 @@ export default function VideoEditor() {
 						zoomRegions,
 						trimRegions,
 						speedRegions,
+						voiceover: voiceover.enabled
+							? {
+									enabled: true,
+									placedClips: voiceoverPlacedClips,
+									clipPcmByKey: voiceoverClips,
+								}
+							: undefined,
 						showShadow: shadowIntensity > 0,
 						shadowIntensity,
 						showBlur,
@@ -2242,6 +2280,10 @@ export default function VideoEditor() {
 			cursorClipToBounds,
 			cursorTheme,
 			t,
+			voT,
+			voiceover,
+			voiceoverPlacedClips,
+			voiceoverClips,
 		],
 	);
 
@@ -2740,6 +2782,9 @@ export default function VideoEditor() {
 													cursorClipToBounds={cursorClipToBounds}
 													cursorTheme={cursorTheme}
 													isPreviewingZoom={isPreviewingZoom}
+													voiceoverEnabled={voiceover.enabled}
+													voiceoverPlacedClips={voiceoverPlacedClips}
+													voiceoverClipPcmByKey={voiceoverClips}
 												/>
 											</div>
 										</div>
