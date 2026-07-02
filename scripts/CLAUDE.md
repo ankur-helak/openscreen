@@ -29,8 +29,11 @@ scripts — cross-reference there for exact wiring.
 
 **TTS (voiceover) assets**
 - `fetch-tts-model.mjs` — idempotently downloads the Kokoro-82M (q8) model + curated English
-  voice `.bin` files + `@huggingface/transformers` ORT wasm into gitignored `tts-assets/`
-  (shipped via electron-builder `extraResources`) so on-device voiceover synthesis works offline.
+  voice `.bin` files + `@huggingface/transformers` ORT wasm **and its `ort-wasm-*.mjs` loader
+  glue** into gitignored `tts-assets/` (shipped via electron-builder `extraResources`) so
+  on-device voiceover synthesis works offline. The `.mjs` is required: the TTS worker overrides
+  ORT's `wasmPaths` to this dir, so ORT runtime-imports the glue from here — shipping only the
+  `.wasm` leaves synthesis with "no available backend found" under `file://`.
   Mirrors `fetch-caption-model.mjs`; the voice id list must stay in sync with
   `src/lib/tts/voices.ts`. Invoked automatically by `before-pack.cjs` on every package build.
 

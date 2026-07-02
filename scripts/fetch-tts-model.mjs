@@ -3,7 +3,7 @@
 //
 //   tts-assets/
 //     models/onnx-community/Kokoro-82M-v1.0-ONNX/...   ← config, tokenizer, q8 onnx, voice .bin files
-//     ort/*.wasm                                       ← copied from @huggingface/transformers/dist
+//     ort/*.wasm + ort-wasm-*.mjs                      ← wasm binary + its JS loader glue, from @huggingface/transformers/dist
 //
 // Idempotent: existing non-empty files are left alone, so re-runs and CI cache hits are no-ops.
 // `tts-assets/` is gitignored and shipped via electron-builder `extraResources`.
@@ -124,9 +124,13 @@ async function copyOrtWasm() {
 			`Missing ${distDir} — is @huggingface/transformers installed? Run npm ci first.`,
 		);
 	}
-	const wasm = entries.filter((f) => f.endsWith(".wasm"));
-	if (wasm.length === 0) throw new Error(`No .wasm files found in ${distDir}`);
-	for (const name of wasm) {
+	// ORT ships each wasm backend as a .wasm binary + a matching .mjs loader module. The TTS
+	// worker overrides env.backends.onnx.wasm.wasmPaths to this dir, so ORT runtime-imports the
+	// ort-wasm-*.mjs glue from here too — shipping only .wasm leaves synthesis dead with "no
+	// available backend found" under file:// (see src/lib/tts/synthesize.worker.ts).
+	const assets = entries.filter((f) => f.endsWith(".wasm") || /^ort-wasm.*\.mjs$/.test(f));
+	if (assets.length === 0) throw new Error(`No ort wasm assets found in ${distDir}`);
+	for (const name of assets) {
 		const dest = path.join(ortOut, name);
 		if (await exists(dest)) {
 			console.log(`  ✓ cached  ort/${name}`);
