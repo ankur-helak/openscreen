@@ -75,3 +75,8 @@ result-*
 
 # vitest browser test attachments (screenshots/junk)
 .vitest-attachments/
+
+# [local-only] diagnostic exports, UI screenshots, and sample recordings used for debugging
+/diagnostic-files/
+/ui-screenshots/
+/example/
