@@ -57,6 +57,10 @@ import {
 	parentDirectoryOf,
 	saveUserPreferences,
 } from "@/lib/userPreferences";
+import {
+	captionRegionsFromScript,
+	computeEffectiveAnnotationRegions,
+} from "@/lib/voiceover/captionsFromScript";
 import { type LayoutClipInput, layoutVoiceover } from "@/lib/voiceover/layout";
 import type { VoiceoverConfig } from "@/lib/voiceover/types";
 import { BackgroundLoadError } from "@/lib/wallpaper";
@@ -381,6 +385,39 @@ export default function VideoEditor() {
 		});
 	}, [voiceover.enabled, voiceover.segments, voiceoverStatuses, trimRegions, speedRegions]);
 
+	const derivedVoiceoverCaptions = useMemo(() => {
+		if (!voiceover.enabled) return [];
+		const hasCaptions = annotationRegions.some((r) => r.annotationSource === "auto-caption");
+		if (!hasCaptions) return [];
+		return captionRegionsFromScript({
+			segments: voiceover.segments,
+			statuses: voiceoverStatuses,
+			minWords: captions.minWords,
+			maxWords: captions.maxWords,
+			style: captions.style,
+			position: captions.position,
+			size: captions.size,
+		});
+	}, [voiceover.enabled, voiceover.segments, voiceoverStatuses, annotationRegions, captions]);
+
+	const captionsLinked =
+		voiceover.enabled &&
+		derivedVoiceoverCaptions.length > 0 &&
+		annotationRegions.some((r) => r.annotationSource === "auto-caption");
+
+	const effectiveAnnotationRegions = useMemo(
+		() =>
+			computeEffectiveAnnotationRegions({
+				annotationRegions,
+				linked: captionsLinked,
+				derivedCaptions: derivedVoiceoverCaptions,
+				style: captions.style,
+				position: captions.position,
+				size: captions.size,
+			}),
+		[annotationRegions, captionsLinked, derivedVoiceoverCaptions, captions],
+	);
+
 	const isAutoCaptioningRef = useRef(false);
 	const [isAutoCaptioning, setIsAutoCaptioning] = useState(false);
 	const [showAutoCaptionsDialog, setShowAutoCaptionsDialog] = useState(false);
@@ -389,12 +426,12 @@ export default function VideoEditor() {
 	const exporterRef = useRef<VideoExporter | null>(null);
 
 	const annotationOnlyRegions = useMemo(
-		() => annotationRegions.filter((region) => region.type !== "blur"),
-		[annotationRegions],
+		() => effectiveAnnotationRegions.filter((region) => region.type !== "blur"),
+		[effectiveAnnotationRegions],
 	);
 	const blurRegions = useMemo(
-		() => annotationRegions.filter((region) => region.type === "blur"),
-		[annotationRegions],
+		() => effectiveAnnotationRegions.filter((region) => region.type === "blur"),
+		[effectiveAnnotationRegions],
 	);
 
 	const currentProjectMedia = useMemo<ProjectMedia | null>(() => {
@@ -2056,7 +2093,7 @@ export default function VideoEditor() {
 						cursorClickBounce,
 						cursorClipToBounds,
 						cursorTheme,
-						annotationRegions,
+						annotationRegions: effectiveAnnotationRegions,
 						webcamLayoutPreset,
 						webcamMaskShape,
 						webcamMirrored,
@@ -2161,7 +2198,7 @@ export default function VideoEditor() {
 						cursorClickBounce,
 						cursorClipToBounds,
 						cursorTheme,
-						annotationRegions,
+						annotationRegions: effectiveAnnotationRegions,
 						webcamLayoutPreset,
 						webcamMaskShape,
 						webcamMirrored,
@@ -2262,7 +2299,7 @@ export default function VideoEditor() {
 			padding,
 			cropRegion,
 			cursorRecordingData,
-			annotationRegions,
+			effectiveAnnotationRegions,
 			isPlaying,
 			aspectRatio,
 			webcamLayoutPreset,
