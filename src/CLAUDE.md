@@ -31,13 +31,17 @@ This is the **React renderer**. The authoritative conventions guide is
   Vite stubs in `lib/vite-stubs/`), `transcription/` (provider-abstracted transcript generation
   wrapping `captioning/`; Whisper default, cached per-video via the native bridge), `cursor/`,
   `voiceover/` (`layoutVoiceover` output-time alignment consumed by preview + export; shared
-  `bed.ts` mono-bed builder). Classes for stateful pipelines, pure functions for transforms.
+  `bed.ts` mono-bed builder; `captionsFromScript` projects script→caption regions anchored at source
+  time, consumed via `computeEffectiveAnnotationRegions` to link captions to voiceover). Classes for
+  stateful pipelines, pure functions for transforms.
 - `native/` — the renderer **facade for the native bridge** (`client.ts`, `contracts.ts`). Call
   through `nativeBridgeClient.*` (includes `nativeBridgeClient.transcript.*` for transcript cache +
   caption drafts), not raw IPC.
 - `hooks/` (`useXxx`, including `useTranscript` for auto-generating + caching transcripts on video
   load, `useClipAudition` for standalone single-clip audition, `useVoiceoverPlayback` for
-  timeline-synced voiceover preview), `utils/`, `i18n/`, `assets/`.
+  timeline-synced voiceover preview), `utils/`, `i18n/`, `assets/`. Editor state includes a
+  `captions` slice (global style, position, size, min/max words per caption) used when voiceover is
+  enabled.
 
 ## Conventions worth remembering
 
