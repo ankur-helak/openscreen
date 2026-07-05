@@ -72,13 +72,14 @@ New pure module, e.g. `src/lib/voiceover/captionsFromScript.ts`:
       style,             // global caption style
     }): AnnotationRegion[]
 
-Algorithm per ready segment:
-1. Split the segment text into words.
-2. Spread the segment's TTS clip duration across its words proportionally (the Auto-captions dialog already promises exactly this: *"Timing is spread across the words in that phrase"*).
-3. Group words into lines using the **existing** caption grouping (`groupTimedCaptionWordsIntoLines`, reused from `annotationsFromCaptions.ts`), bounded by min/max.
-4. Emit an `AnnotationRegion` per line: `content` = line text, `startMs`/`endMs` from the spread, styled by the global caption style, tagged with a caption source.
+Algorithm per ready segment (sorted by `sourceStartMs`):
+1. Build one merged caption span in **SOURCE time**: `startSec = sourceStartMs/1000`, `endSec = (sourceStartMs + ttsDurationMs)/1000` — i.e. anchor at the segment's source start, length = the TTS clip's duration. Clamp `endSec` so it does not overlap the next ready segment's `sourceStartMs`.
+2. Chunk into caption lines with the **existing** `splitMergedCaptionsByWordBounds(merged, minWords, maxWords)` (`annotationsFromCaptions.ts`), which spreads each span's duration across its words by character weight — exactly the Auto-captions promise *"Timing is spread across the words in that phrase."*
+3. Emit an `AnnotationRegion` per line: `content`/`textContent` = line text, `startMs`/`endMs` from the chunker, `annotationSource: "auto-caption"`, styled by the global caption style.
 
-The function is deterministic and fully unit-testable (chunking, timing spread, ungenerated handling).
+**Resolved time-base (was the §5.3 risk):** annotation regions are rendered in **SOURCE time** in both preview (`VideoPlayback.tsx` compares `currentTime` = raw `<video>` source time) and export (`frameRenderer.ts`/`annotationRenderer.ts` compare the per-frame **source** timestamp) — the two agree and neither maps annotations through trims/speed. Therefore derived captions are authored in **source time** anchored on `sourceStartMs` (above); we do **not** feed `layoutVoiceover`'s output-time `startMs` into annotation `startMs`. Only the TTS **duration** (from the ready clip / `voiceoverStatuses[id].durationMs`) is used, not the output-time placement. This keeps captions consistent with the existing source-time caption/annotation convention.
+
+The function is deterministic and fully unit-testable (chunking, source-time anchoring, overlap clamping, ungenerated handling).
 
 ### 5.3 Rendering integration
 Introduce a derived `effectiveAnnotationRegions` in `VideoEditor.tsx`, fed to **both** preview (`VideoPlayback`) and export (`videoExporter`):
@@ -86,7 +87,9 @@ Introduce a derived `effectiveAnnotationRegions` in `VideoEditor.tsx`, fed to **
 - **Linked** (voiceover on + captions on + ≥1 ready clip): `effective = (stored annotations minus auto-caption regions) + captionRegionsFromScript(...)`.
 - **Not linked**: `effective = annotationRegions` (unchanged).
 
-The stored auto-caption regions are **never mutated**, so turning voiceover off reverts for free (Decision 4). No renderer changes are needed — both renderers already render whatever regions they are handed. **Time-base note:** the derived captions come from `layoutVoiceover` (output time); the plan must confirm the exact time-base the annotation renderers expect (source vs. output) and reconcile so derived captions and voiceover clips render on the same clock. This is the primary implementation risk to resolve first.
+The stored auto-caption regions are **never mutated**, so turning voiceover off reverts for free (Decision 4). No renderer changes are needed — both renderers already render whatever regions they are handed. **Time-base:** resolved — annotations render in source time in both preview and export (see §5.2), so derived captions are authored in source time; no clock reconciliation with `layoutVoiceover`'s output time is needed.
+
+When **not** linked, `effective` also applies the global caption style to any stored `auto-caption` regions, so caption styling is consistent whether voiceover is on or off (Decision 5) without mutating stored state.
 
 ### 5.4 Editing model
 - **Words (linked):** edited via the voiceover script segment; the caption's own text field is read-only/reflects the script.
@@ -130,7 +133,7 @@ With voiceover on, derived captions are not stored annotation regions, so they d
 ## 9. Intended changes / trade-offs (call-outs)
 1. **Per-caption individual styling is removed** in favour of one global caption style (Decision 5) — affects standalone captions too, on and off.
 2. **While linked, caption text is not edited on the caption** — words are edited in the script (Decision 7); style stays editable.
-3. **Time-base reconciliation** (§5.3) is the main technical risk and must be settled at the start of implementation.
+3. **Time-base** (§5.2) — resolved: annotations render in source time in both preview and export, so derived captions are authored in source time anchored on `sourceStartMs` with TTS-duration length. No longer an open risk.
 
 ## 10. Affected components (indicative)
 - New: `src/lib/voiceover/captionsFromScript.ts` (+ tests).
