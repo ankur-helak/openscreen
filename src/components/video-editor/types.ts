@@ -324,6 +324,34 @@ export const DEFAULT_ANNOTATION_STYLE: AnnotationTextStyle = {
 	textAnimation: "none",
 };
 
+/** Global caption look + granularity. One style for ALL captions (Decision 5). */
+export interface CaptionSettings {
+	style: AnnotationTextStyle;
+	position: AnnotationPosition;
+	size: AnnotationSize;
+	/** Min/Max words per caption line (the Auto-captions dialog values, now persisted). */
+	minWords: number;
+	maxWords: number;
+}
+
+export const DEFAULT_CAPTION_SETTINGS: CaptionSettings = {
+	style: {
+		color: "#ffffff",
+		backgroundColor: "rgba(255, 255, 255, 0)",
+		fontSize: 24,
+		fontFamily: "Inter",
+		fontWeight: "normal",
+		fontStyle: "normal",
+		textDecoration: "none",
+		textAlign: "center",
+		textAnimation: "none",
+	},
+	position: { x: 4, y: 86 },
+	size: { width: 92, height: 12 },
+	minWords: 2,
+	maxWords: 7,
+};
+
 export const DEFAULT_FIGURE_DATA: FigureData = {
 	arrowDirection: "right",
 	color: "#34B27B",

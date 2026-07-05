@@ -1,29 +1,11 @@
 import type { AnnotationRegion, AnnotationTextStyle } from "@/components/video-editor/types";
+import { DEFAULT_CAPTION_SETTINGS } from "@/components/video-editor/types";
 
 import type { CaptionSegment } from "./transcribe";
 
-/** Wide lower-third bar; `position.x` is top-left as % of container, so center with (100 - width) / 2. */
-const CAPTION_WIDTH = 92;
-const CAPTION_HEIGHT = 12;
-const CAPTION_BOTTOM_MARGIN = 2;
-
-const CAPTION_POSITION = {
-	x: (100 - CAPTION_WIDTH) / 2,
-	y: 100 - CAPTION_HEIGHT - CAPTION_BOTTOM_MARGIN,
-};
-
-const CAPTION_SIZE = { width: CAPTION_WIDTH, height: CAPTION_HEIGHT };
-
-const CAPTION_STYLE: AnnotationTextStyle = {
-	color: "#ffffff",
-	backgroundColor: "rgba(255, 255, 255, 0)",
-	fontSize: 24,
-	fontFamily: "Inter",
-	fontWeight: "normal",
-	fontStyle: "normal",
-	textDecoration: "none",
-	textAlign: "center",
-};
+const CAPTION_POSITION = { ...DEFAULT_CAPTION_SETTINGS.position };
+const CAPTION_SIZE = { ...DEFAULT_CAPTION_SETTINGS.size };
+const CAPTION_STYLE: AnnotationTextStyle = { ...DEFAULT_CAPTION_SETTINGS.style };
 
 /** Nudge caption starts earlier (seconds); Whisper onsets run slightly late. Do not offset ends too, that pulls lines off-screen early. */
 const AUTO_CAPTION_START_BIAS_SEC = 0;
