@@ -1717,20 +1717,23 @@ export default function VideoEditor() {
 
 	const handleAnnotationStyleChange = useCallback(
 		(id: string, style: Partial<AnnotationRegion["style"]>) => {
-			pushState((prev) => {
-				const touched = prev.annotationRegions.find((r) => r.id === id);
-				const syncAutoCaptions = touched?.annotationSource === "auto-caption";
-				return {
-					annotationRegions: prev.annotationRegions.map((region) => {
-						if (syncAutoCaptions && region.annotationSource === "auto-caption") {
-							return { ...region, style: { ...region.style, ...style } };
-						}
-						return region.id === id ? { ...region, style: { ...region.style, ...style } } : region;
-					}),
-				};
-			});
+			const isCaption =
+				id.startsWith("vo-caption-") ||
+				annotationRegions.find((r) => r.id === id)?.annotationSource === "auto-caption";
+			if (isCaption) {
+				pushState((prev) => ({
+					captions: { ...prev.captions, style: { ...prev.captions.style, ...style } },
+				}));
+				return;
+			}
+			// Non-caption annotations: update the specific region's style
+			pushState((prev) => ({
+				annotationRegions: prev.annotationRegions.map((region) =>
+					region.id === id ? { ...region, style: { ...region.style, ...style } } : region,
+				),
+			}));
 		},
-		[pushState],
+		[annotationRegions, pushState],
 	);
 
 	const handleAnnotationFigureDataChange = useCallback(
