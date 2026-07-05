@@ -93,6 +93,7 @@ interface TimelineEditorProps {
 	voiceoverStatuses?: Record<string, SegmentSynthStatus>;
 	selectedVoiceoverSegmentId?: string | null;
 	onSelectVoiceoverSegment?: (id: string) => void;
+	captionsLinked?: boolean;
 	aspectRatio: AspectRatio;
 	onAspectRatioChange: (aspectRatio: AspectRatio) => void;
 	videoUrl?: string;
@@ -958,6 +959,7 @@ export default function TimelineEditor({
 	voiceoverStatuses,
 	selectedVoiceoverSegmentId,
 	onSelectVoiceoverSegment,
+	captionsLinked = false,
 	aspectRatio,
 	onAspectRatioChange,
 	videoUrl,
@@ -1399,7 +1401,11 @@ export default function TimelineEditor({
 			variant: "trim",
 		}));
 
-		const annotations: TimelineRenderItem[] = annotationRegions.map((region) => {
+		const laneAnnotations = captionsLinked
+			? annotationRegions.filter((r) => r.annotationSource !== "auto-caption")
+			: annotationRegions;
+
+		const annotations: TimelineRenderItem[] = laneAnnotations.map((region) => {
 			let label: string;
 
 			if (region.type === "text") {
@@ -1438,7 +1444,7 @@ export default function TimelineEditor({
 		}));
 
 		return [...zooms, ...trims, ...annotations, ...blurs, ...speeds];
-	}, [zoomRegions, trimRegions, annotationRegions, blurRegions, speedRegions, t]);
+	}, [zoomRegions, trimRegions, annotationRegions, blurRegions, speedRegions, captionsLinked, t]);
 
 	// Spans that participate in overlap resolution (clampToNeighbours). Annotation
 	// and blur are excluded since they may overlap and shouldn't constrain a drag.

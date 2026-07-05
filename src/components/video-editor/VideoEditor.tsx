@@ -3096,6 +3096,7 @@ export default function VideoEditor() {
 									voiceoverStatuses={voiceoverStatuses}
 									selectedVoiceoverSegmentId={selectedVoiceoverSegmentId}
 									onSelectVoiceoverSegment={handleSelectVoiceoverSegment}
+									captionsLinked={captionsLinked}
 									captionsLabel={t("autoCaptions.button")}
 									isGeneratingCaptions={isAutoCaptioning}
 									onGenerateCaptions={() => {
