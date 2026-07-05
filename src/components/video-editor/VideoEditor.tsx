@@ -421,8 +421,8 @@ export default function VideoEditor() {
 	const isAutoCaptioningRef = useRef(false);
 	const [isAutoCaptioning, setIsAutoCaptioning] = useState(false);
 	const [showAutoCaptionsDialog, setShowAutoCaptionsDialog] = useState(false);
-	const [captionWordsMin, setCaptionWordsMin] = useState(2);
-	const [captionWordsMax, setCaptionWordsMax] = useState(7);
+	const [captionWordsMin, setCaptionWordsMin] = useState(captions.minWords);
+	const [captionWordsMax, setCaptionWordsMax] = useState(captions.maxWords);
 	const exporterRef = useRef<VideoExporter | null>(null);
 
 	const annotationOnlyRegions = useMemo(
@@ -2650,6 +2650,13 @@ export default function VideoEditor() {
 							disabled={isAutoCaptioning}
 							onClick={() => {
 								setShowAutoCaptionsDialog(false);
+								pushState((prev) => ({
+									captions: {
+										...prev.captions,
+										minWords: captionWordsMin,
+										maxWords: captionWordsMax,
+									},
+								}));
 								void generateAutoCaptions(captionWordsMin, captionWordsMax);
 							}}
 							className="bg-[#34B27B] text-white hover:bg-[#34B27B]/90"
