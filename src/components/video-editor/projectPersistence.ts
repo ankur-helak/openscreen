@@ -17,6 +17,7 @@ import {
 } from "./editorDefaults";
 import {
 	type AnnotationRegion,
+	type CaptionSettings,
 	type CropRegion,
 	clampPlaybackSpeed,
 	DEFAULT_ANNOTATION_POSITION,
@@ -26,6 +27,7 @@ import {
 	DEFAULT_BLUR_DATA,
 	DEFAULT_BLUR_FREEHAND_POINTS,
 	DEFAULT_BLUR_INTENSITY,
+	DEFAULT_CAPTION_SETTINGS,
 	DEFAULT_FIGURE_DATA,
 	DEFAULT_PLAYBACK_SPEED,
 	DEFAULT_WEBCAM_MIRRORED,
@@ -95,6 +97,7 @@ export interface ProjectEditorState {
 	gifSizePreset: GifSizePreset;
 	cursorTheme: string;
 	voiceover: VoiceoverConfig;
+	captions: CaptionSettings;
 }
 
 export interface EditorProjectData {
@@ -559,6 +562,7 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 				? editor.gifSizePreset
 				: DEFAULT_GIF_SETTINGS.sizePreset,
 		voiceover: normalizeVoiceoverConfig(editor.voiceover),
+		captions: editor.captions ?? DEFAULT_CAPTION_SETTINGS,
 	};
 }
 

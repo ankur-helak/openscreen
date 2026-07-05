@@ -211,6 +211,7 @@ export default function VideoEditor() {
 		webcamSizePreset,
 		webcamPosition,
 		voiceover,
+		captions,
 	} = editorState;
 
 	// Non-undoable state
@@ -756,6 +757,7 @@ export default function VideoEditor() {
 				gifSizePreset,
 				cursorTheme,
 				voiceover,
+				captions,
 			};
 			const projectData = createProjectData(currentProjectMedia, editorState);
 
@@ -831,6 +833,7 @@ export default function VideoEditor() {
 			videoPath,
 			t,
 			voiceover,
+			captions,
 		],
 	);
 

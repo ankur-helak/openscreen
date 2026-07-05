@@ -6,6 +6,7 @@ import {
 } from "@/components/video-editor/editorDefaults";
 import type {
 	AnnotationRegion,
+	CaptionSettings,
 	CropRegion,
 	SpeedRegion,
 	TrimRegion,
@@ -16,6 +17,7 @@ import type {
 	ZoomRegion,
 } from "@/components/video-editor/types";
 import {
+	DEFAULT_CAPTION_SETTINGS,
 	DEFAULT_CROP_REGION,
 	DEFAULT_WEBCAM_MIRRORED,
 	DEFAULT_WEBCAM_REACTIVE_ZOOM,
@@ -53,6 +55,8 @@ export interface EditorState {
 	webcamPosition: WebcamPosition | null;
 	/** AI voiceover script (project-wide voice + speed + editable segments). */
 	voiceover: VoiceoverConfig;
+	/** Global caption style + word bounds (one style for all captions). */
+	captions: CaptionSettings;
 }
 
 export const INITIAL_EDITOR_STATE: EditorState = {
@@ -78,6 +82,7 @@ export const INITIAL_EDITOR_STATE: EditorState = {
 	webcamSizePreset: DEFAULT_WEBCAM_SETTINGS.sizePreset,
 	webcamPosition: DEFAULT_WEBCAM_SETTINGS.position,
 	voiceover: DEFAULT_VOICEOVER_CONFIG,
+	captions: DEFAULT_CAPTION_SETTINGS,
 };
 
 type StateUpdate = Partial<EditorState> | ((prev: EditorState) => Partial<EditorState>);
