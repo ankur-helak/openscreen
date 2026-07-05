@@ -1794,38 +1794,44 @@ export default function VideoEditor() {
 
 	const handleAnnotationPositionChange = useCallback(
 		(id: string, position: { x: number; y: number }) => {
-			pushState((prev) => {
-				const moved = prev.annotationRegions.find((r) => r.id === id);
-				const syncAutoCaptions = moved?.annotationSource === "auto-caption";
-				return {
-					annotationRegions: prev.annotationRegions.map((region) => {
-						if (syncAutoCaptions && region.annotationSource === "auto-caption") {
-							return { ...region, position };
-						}
-						return region.id === id ? { ...region, position } : region;
-					}),
-				};
-			});
+			const isCaption =
+				id.startsWith("vo-caption-") ||
+				annotationRegions.find((r) => r.id === id)?.annotationSource === "auto-caption";
+			if (isCaption) {
+				pushState((prev) => ({
+					captions: { ...prev.captions, position },
+				}));
+				return;
+			}
+			// Non-caption annotations: update the specific region's position
+			pushState((prev) => ({
+				annotationRegions: prev.annotationRegions.map((region) =>
+					region.id === id ? { ...region, position } : region,
+				),
+			}));
 		},
-		[pushState],
+		[annotationRegions, pushState],
 	);
 
 	const handleAnnotationSizeChange = useCallback(
 		(id: string, size: { width: number; height: number }) => {
-			pushState((prev) => {
-				const resized = prev.annotationRegions.find((r) => r.id === id);
-				const syncAutoCaptions = resized?.annotationSource === "auto-caption";
-				return {
-					annotationRegions: prev.annotationRegions.map((region) => {
-						if (syncAutoCaptions && region.annotationSource === "auto-caption") {
-							return { ...region, size };
-						}
-						return region.id === id ? { ...region, size } : region;
-					}),
-				};
-			});
+			const isCaption =
+				id.startsWith("vo-caption-") ||
+				annotationRegions.find((r) => r.id === id)?.annotationSource === "auto-caption";
+			if (isCaption) {
+				pushState((prev) => ({
+					captions: { ...prev.captions, size },
+				}));
+				return;
+			}
+			// Non-caption annotations: update the specific region's size
+			pushState((prev) => ({
+				annotationRegions: prev.annotationRegions.map((region) =>
+					region.id === id ? { ...region, size } : region,
+				),
+			}));
 		},
-		[pushState],
+		[annotationRegions, pushState],
 	);
 
 	useEffect(() => {
