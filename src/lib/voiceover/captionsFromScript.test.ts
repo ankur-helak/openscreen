@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { AnnotationRegion } from "@/components/video-editor/types";
 import { DEFAULT_CAPTION_SETTINGS } from "@/components/video-editor/types";
-import { captionRegionsFromScript } from "./captionsFromScript";
+import { captionRegionsFromScript, computeEffectiveAnnotationRegions } from "./captionsFromScript";
 import type { SegmentSynthStatus, VoiceoverSegment } from "./types";
 
 const seg = (id: string, startMs: number, text: string): VoiceoverSegment => ({
@@ -61,5 +62,53 @@ describe("captionRegionsFromScript", () => {
 		expect(
 			captionRegionsFromScript({ segments: [seg("vo-1", 0, "x")], statuses: {}, ...base }),
 		).toEqual([]);
+	});
+});
+
+const region = (id: string, source?: "auto-caption"): AnnotationRegion => ({
+	id,
+	startMs: 0,
+	endMs: 1000,
+	type: "text",
+	content: id,
+	textContent: id,
+	position: { x: 0, y: 0 },
+	size: { width: 10, height: 10 },
+	style: { ...DEFAULT_CAPTION_SETTINGS.style, fontSize: 99 },
+	zIndex: 0,
+	annotationSource: source,
+});
+
+describe("computeEffectiveAnnotationRegions", () => {
+	const styleArgs = {
+		style: DEFAULT_CAPTION_SETTINGS.style,
+		position: DEFAULT_CAPTION_SETTINGS.position,
+		size: DEFAULT_CAPTION_SETTINGS.size,
+	};
+
+	it("linked: replaces stored auto-captions with derived, keeps other annotations", () => {
+		const arrow = region("arrow-1");
+		const storedCaption = region("annotation-1", "auto-caption");
+		const derived = [region("vo-caption-0", "auto-caption")];
+		const out = computeEffectiveAnnotationRegions({
+			annotationRegions: [arrow, storedCaption],
+			linked: true,
+			derivedCaptions: derived,
+			...styleArgs,
+		});
+		expect(out.map((r) => r.id)).toEqual(["arrow-1", "vo-caption-0"]);
+	});
+
+	it("not linked: applies the global caption style to stored auto-captions only", () => {
+		const arrow = region("arrow-1");
+		const storedCaption = region("annotation-1", "auto-caption");
+		const out = computeEffectiveAnnotationRegions({
+			annotationRegions: [arrow, storedCaption],
+			linked: false,
+			derivedCaptions: [],
+			...styleArgs,
+		});
+		expect(out.find((r) => r.id === "annotation-1")!.style.fontSize).toBe(24); // restyled
+		expect(out.find((r) => r.id === "arrow-1")!.style.fontSize).toBe(99); // untouched
 	});
 });

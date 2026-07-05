@@ -71,3 +71,32 @@ export function captionRegionsFromScript(input: CaptionsFromScriptInput): Annota
 		};
 	});
 }
+
+export interface EffectiveInput {
+	annotationRegions: AnnotationRegion[];
+	linked: boolean;
+	derivedCaptions: AnnotationRegion[];
+	style: AnnotationTextStyle;
+	position: AnnotationPosition;
+	size: AnnotationSize;
+}
+
+/**
+ * The annotation set that preview + export should render.
+ * - linked (voiceover on + captions on + ≥1 ready clip): stored auto-captions are replaced
+ *   by the script-derived captions; all other annotations pass through.
+ * - not linked: stored auto-captions get the global caption style applied (so styling is
+ *   consistent across voiceover on/off) WITHOUT mutating stored state.
+ */
+export function computeEffectiveAnnotationRegions(input: EffectiveInput): AnnotationRegion[] {
+	const { annotationRegions, linked, derivedCaptions, style, position, size } = input;
+	if (linked) {
+		const nonCaption = annotationRegions.filter((r) => r.annotationSource !== "auto-caption");
+		return [...nonCaption, ...derivedCaptions];
+	}
+	return annotationRegions.map((r) =>
+		r.annotationSource === "auto-caption"
+			? { ...r, style: { ...style }, position: { ...position }, size: { ...size } }
+			: r,
+	);
+}
