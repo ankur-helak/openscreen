@@ -1,0 +1,11 @@
+{
+	"title": "Exportar documento",
+	"button": "Exportar documento",
+	"busy": "Creando documento…",
+	"disclosure": "La transcripción y las capturas de pantalla de esta grabación se envían a OpenAI para generar el documento.",
+	"addKey": "Añadir clave OpenAI",
+	"noTranscript": "Graba o abre un vídeo con voz — el documento se genera a partir de su transcripción.",
+	"notEnough": "No hay suficiente contenido en esta grabación para crear un tutorial.",
+	"saved": "Tutorial guardado",
+	"failed": "Error al exportar el documento"
+}

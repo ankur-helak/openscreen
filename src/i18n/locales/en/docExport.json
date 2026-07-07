@@ -1,0 +1,11 @@
+{
+	"title": "Doc export",
+	"button": "Export doc",
+	"busy": "Building doc…",
+	"disclosure": "The transcript and screenshots from this recording are sent to OpenAI to generate the document.",
+	"addKey": "Add OpenAI key",
+	"noTranscript": "Record or open a video with speech — the document is generated from its transcript.",
+	"notEnough": "Not enough in this recording to build a walkthrough.",
+	"saved": "Walkthrough saved",
+	"failed": "Doc export failed"
+}

@@ -1,0 +1,11 @@
+{
+	"title": "Esportazione documento",
+	"button": "Esporta documento",
+	"busy": "Creazione documento…",
+	"disclosure": "La trascrizione e gli screenshot di questa registrazione vengono inviati a OpenAI per generare il documento.",
+	"addKey": "Aggiungi chiave OpenAI",
+	"noTranscript": "Registra o apri un video con audio vocale: il documento viene generato dalla sua trascrizione.",
+	"notEnough": "Contenuto insufficiente in questa registrazione per creare una guida.",
+	"saved": "Guida salvata",
+	"failed": "Esportazione documento non riuscita"
+}
