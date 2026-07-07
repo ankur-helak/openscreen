@@ -23,7 +23,7 @@ scripts — cross-reference there for exact wiring.
   `electron/native/bin/win32-x64/`.
 
 **Caption assets**
-- `fetch-caption-model.mjs` — idempotently downloads the Whisper-tiny model + ORT wasm into
+- `fetch-caption-model.mjs` — idempotently downloads the Whisper-base.en model + ORT wasm into
   gitignored `caption-assets/` (shipped via electron-builder `extraResources`) so captioning
   works offline. Invoked automatically by `before-pack.cjs` on every package build.
 

@@ -58,10 +58,18 @@ export function useTranscript(params: {
 			opts: { ignoreCache: boolean },
 		): Promise<Transcript | null> => {
 			const isCurrent = () => currentSourceRef.current === source;
+			const provider = getActiveProvider();
 
 			if (!opts.ignoreCache) {
 				const cached = await nativeBridgeClient.transcript.getTranscript(source);
-				if (cached.success && isTranscript(cached.transcript)) {
+				// Ignore a cache entry produced by a different model so upgrading the caption model
+				// (e.g. whisper-tiny → whisper-base.en) re-transcribes already-cached videos instead
+				// of serving stale, lower-quality results.
+				if (
+					cached.success &&
+					isTranscript(cached.transcript) &&
+					cached.transcript.model === provider.model
+				) {
 					const t = cached.transcript;
 					if (!isCurrent()) return null;
 					setTranscript(t.segments.length > 0 ? t : null);
@@ -77,7 +85,6 @@ export function useTranscript(params: {
 			abortRef.current = controller;
 
 			setStatus({ state: "transcribing" });
-			const provider = getActiveProvider();
 			try {
 				const result = await provider.transcribe(url, {
 					trimRegions: trimRegionsRef.current,

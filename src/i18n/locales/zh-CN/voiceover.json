@@ -27,5 +27,28 @@
 	"trimmedTitle": "该片段的文字位于已裁剪区域,将不会播放",
 	"export": {
 		"noClipsWarning": "配音已启用,但尚未生成任何片段——将导出没有旁白的视频。"
+	},
+	"polish": {
+		"sectionLabel": "AI 脚本润色",
+		"polishScript": "润色脚本",
+		"repolish": "润色",
+		"revert": "还原",
+		"failed": "润色失败",
+		"addKey": "添加 OpenAI 密钥",
+		"tone": {
+			"conversational": "会话式",
+			"professional": "专业",
+			"concise": "简洁",
+			"enthusiastic": "热情",
+			"tutorial": "教程"
+		},
+		"keyDialog": {
+			"title": "OpenAI API 密钥",
+			"privacyNote": "您的分段文本(不含音频或视频)将被发送到 OpenAI 以润色脚本。密钥安全地存储在此设备上。",
+			"placeholder": "sk-…",
+			"save": "保存密钥",
+			"clear": "移除密钥",
+			"saveError": "无法保存密钥。"
+		}
 	}
 }

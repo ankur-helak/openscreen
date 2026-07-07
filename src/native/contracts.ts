@@ -113,6 +113,24 @@ export interface VoiceoverClipResult {
 	message?: string;
 }
 
+export interface ScriptPolishResult {
+	success: boolean;
+	/** Rewritten segments (id → text) when present. */
+	results?: { id: string; text: string }[];
+	message?: string;
+	/** Machine-readable failure reason for renderer branching. */
+	code?: "no-key" | "api-error" | "invalid-response";
+}
+
+export interface ScriptPolishKeyStatus {
+	hasKey: boolean;
+}
+
+export interface ScriptPolishKeyResult {
+	success: boolean;
+	message?: string;
+}
+
 export type NativeBridgeErrorCode =
 	| "INVALID_REQUEST"
 	| "UNSUPPORTED_ACTION"
@@ -267,6 +285,33 @@ export type NativeBridgeRequest =
 			domain: "voiceover";
 			action: "putVoiceoverClip";
 			payload: { key: string; pcm: ArrayBuffer; sampleRate: number };
+			requestId?: string;
+	  }
+	| {
+			domain: "scriptPolish";
+			action: "polish";
+			payload: {
+				segments: { id: string; text: string; targetWords: number }[];
+				toneInstruction: string;
+			};
+			requestId?: string;
+	  }
+	| {
+			domain: "scriptPolish";
+			action: "getKeyStatus";
+			payload?: EmptyPayload;
+			requestId?: string;
+	  }
+	| {
+			domain: "scriptPolish";
+			action: "setKey";
+			payload: { key: string };
+			requestId?: string;
+	  }
+	| {
+			domain: "scriptPolish";
+			action: "clearKey";
+			payload?: EmptyPayload;
 			requestId?: string;
 	  }
 	| {

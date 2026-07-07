@@ -16,10 +16,11 @@
 
 <p align="center"><strong>OpenScreen is your free, open-source alternative to Screen Studio.</strong></p>
 
-## ✨ What's new in this fork (v1.6.0)
+## ✨ What's new in this fork (v1.7.0)
 
-This fork builds on upstream OpenScreen with on-device narration + captioning and macOS packaging fixes:
+This fork builds on upstream OpenScreen with on-device narration + captioning, cloud AI script polishing, and macOS packaging fixes:
 
+- **AI script polish (cloud, bring-your-own-key)** — rewrite your recorded narration with OpenAI: pick a tone and each transcript segment is polished in place, so your on-device voiceover, script-linked captions, and timeline follow automatically. Per-segment revert and full undo are supported. Your API key is stored encrypted on-device and only the segment text is sent — never audio or video.
 - **AI voiceover** — generate natural-sounding narration from a script, entirely on-device (Kokoro-82M). No cloud, works offline; with per-segment audition, timeline-synced preview, and export.
 - **Script-linked captions** — on-screen captions derive from the voiceover script and stay in sync with the narration, styled by one global caption style.
 - **macOS fixes** — the app now shows in the Dock and owns the menu bar (previously ran as an accessory app with neither), and captions/voiceover no longer drop the last few seconds of long (~2 min+) recordings.
@@ -47,6 +48,7 @@ Screen Studio is an awesome product and this is definitely not a 1:1 clone. If y
 - Auto or manual zooms with adjustable depth, duration, easing, and pixel-precise position; auto-zoom follows your cursor as you work.
 - Custom cursor size, smoothing, and click effects, with cursor themes and post-recording path smoothing.
 - AI voiceover: generate natural-sounding narration entirely on-device from a script — no cloud, works offline.
+- AI script polish (optional, cloud): rewrite the transcript with OpenAI using your own API key — per-segment and in place, so voiceover and captions stay in sync. Key stored encrypted on-device; only the text is sent.
 - Automatic captions, generated on-device with no upload (works offline), and optionally linked to the AI voiceover so the on-screen text stays in sync with the narration.
 - Wallpapers, solid colors, gradients, or your own background image.
 - Motion blur.
@@ -60,7 +62,7 @@ Screen Studio is an awesome product and this is definitely not a 1:1 clone. If y
 
 ## Installation
 
-> **This is a fork** with extra features (on-device **AI voiceover**, script-linked captions, and macOS packaging fixes). Prebuilt **macOS** DMGs for this fork are published on the [fork's GitHub Releases](https://github.com/ankur-helak/openscreen/releases) page. The Homebrew, winget, and Nix instructions below track the original upstream project and won't include these fork-only features.
+> **This is a fork** with extra features (on-device **AI voiceover**, script-linked captions, cloud **AI script polish**, and macOS packaging fixes). Prebuilt **macOS** DMGs for this fork are published on the [fork's GitHub Releases](https://github.com/ankur-helak/openscreen/releases) page. The Homebrew, winget, and Nix instructions below track the original upstream project and won't include these fork-only features.
 
 Download the latest installer for your platform from the [GitHub Releases](https://github.com/ankur-helak/openscreen/releases) page.
 

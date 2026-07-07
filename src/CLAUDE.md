@@ -32,7 +32,8 @@ This is the **React renderer**. The authoritative conventions guide is
   wrapping `captioning/`; Whisper default, cached per-video via the native bridge), `cursor/`,
   `voiceover/` (`layoutVoiceover` output-time alignment consumed by preview + export; shared
   `bed.ts` mono-bed builder; `captionsFromScript` projects script→caption regions anchored at source
-  time, consumed via `computeEffectiveAnnotationRegions` to link captions to voiceover). Classes for
+  time, consumed via `computeEffectiveAnnotationRegions` to link captions to voiceover), `script/`
+  (OpenAI script-polish pure helpers: budget math, tone presets, response validation). Classes for
   stateful pipelines, pure functions for transforms.
 - `native/` — the renderer **facade for the native bridge** (`client.ts`, `contracts.ts`). Call
   through `nativeBridgeClient.*` (includes `nativeBridgeClient.transcript.*` for transcript cache +

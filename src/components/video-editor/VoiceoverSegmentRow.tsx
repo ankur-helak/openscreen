@@ -1,8 +1,12 @@
-import { Loader2, Play, RefreshCw, Square } from "lucide-react";
+import { Loader2, Play, RefreshCw, RotateCcw, Sparkles, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScopedT } from "@/contexts/I18nContext";
 import { cn } from "@/lib/utils";
-import type { SegmentSynthStatus, VoiceoverSegment } from "@/lib/voiceover/types";
+import type {
+	SegmentPolishStatus,
+	SegmentSynthStatus,
+	VoiceoverSegment,
+} from "@/lib/voiceover/types";
 
 export interface VoiceoverSegmentRowProps {
 	segment: VoiceoverSegment;
@@ -16,6 +20,10 @@ export interface VoiceoverSegmentRowProps {
 	onAudition: () => void;
 	onStopAudition: () => void;
 	onSelect: () => void;
+	polishStatus: SegmentPolishStatus;
+	canPolish: boolean;
+	onPolish: () => void;
+	onRevert: () => void;
 }
 
 function formatAnchor(ms: number): string {
@@ -37,6 +45,10 @@ export function VoiceoverSegmentRow({
 	onAudition,
 	onStopAudition,
 	onSelect,
+	polishStatus,
+	canPolish,
+	onPolish,
+	onRevert,
 }: VoiceoverSegmentRowProps) {
 	const t = useScopedT("voiceover");
 	const isReady = status.state === "ready";
@@ -69,6 +81,9 @@ export function VoiceoverSegmentRow({
 				>
 					{statusLabel}
 				</span>
+				{polishStatus.state === "error" ? (
+					<span className="text-[10px] text-red-300">{t("polish.failed")}</span>
+				) : null}
 			</div>
 
 			<textarea
@@ -96,6 +111,33 @@ export function VoiceoverSegmentRow({
 					)}
 					{t("regenerate")}
 				</Button>
+				<Button
+					type="button"
+					size="sm"
+					variant="ghost"
+					disabled={!canPolish || polishStatus.state === "polishing"}
+					onClick={onPolish}
+					className="h-7 gap-1 px-2 text-[11px]"
+				>
+					{polishStatus.state === "polishing" ? (
+						<Loader2 className="h-3 w-3 animate-spin" />
+					) : (
+						<Sparkles className="h-3 w-3" />
+					)}
+					{t("polish.repolish")}
+				</Button>
+				{segment.textBeforePolish !== undefined ? (
+					<Button
+						type="button"
+						size="sm"
+						variant="ghost"
+						onClick={onRevert}
+						className="h-7 gap-1 px-2 text-[11px]"
+					>
+						<RotateCcw className="h-3 w-3" />
+						{t("polish.revert")}
+					</Button>
+				) : null}
 				{isReady &&
 					(isAuditioning ? (
 						<Button

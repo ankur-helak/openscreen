@@ -2,7 +2,7 @@
 // instead of fetching the Whisper model from HuggingFace and the onnxruntime wasm from a CDN.
 //
 //   caption-assets/
-//     models/Xenova/whisper-tiny/...   ← downloaded from HuggingFace (config + quantized ONNX)
+//     models/Xenova/whisper-base.en/...   ← downloaded from HuggingFace (config + quantized ONNX)
 //     ort/ort-wasm*.wasm               ← copied from @xenova/transformers/dist
 //
 // Idempotent: existing non-empty files are left alone, so re-runs and CI cache hits are no-ops.
@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "caption-assets");
-const MODEL_ID = "Xenova/whisper-tiny";
+const MODEL_ID = "Xenova/whisper-base.en";
 const HF_BASE = `https://huggingface.co/${MODEL_ID}/resolve/main`;
 
 // Small config/tokenizer/preprocessor files plus the quantized ONNX the ASR pipeline loads by

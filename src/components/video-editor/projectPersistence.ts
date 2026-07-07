@@ -66,7 +66,7 @@ function normalizeWallpaperValue(value: string): string {
 	return CANONICAL_WALLPAPERS.has(canonical) ? canonical : DEFAULT_WALLPAPER;
 }
 
-export const PROJECT_VERSION = 3;
+export const PROJECT_VERSION = 4;
 
 export interface ProjectEditorState {
 	wallpaper: string;
@@ -237,6 +237,9 @@ function normalizeVoiceoverConfig(raw: unknown): VoiceoverConfig {
 						? Math.max(0, Math.round(s.sourceStartMs))
 						: 0,
 					sourceEndMs: isFiniteNumber(s.sourceEndMs) ? Math.max(0, Math.round(s.sourceEndMs)) : 0,
+					...(typeof s.textBeforePolish === "string"
+						? { textBeforePolish: s.textBeforePolish }
+						: {}),
 				}))
 		: [];
 	return {
@@ -244,6 +247,7 @@ function normalizeVoiceoverConfig(raw: unknown): VoiceoverConfig {
 		engine: VOICEOVER_ENGINE,
 		voice: typeof v.voice === "string" && v.voice ? v.voice : DEFAULT_VOICEOVER_CONFIG.voice,
 		speed: isFiniteNumber(v.speed) ? clamp(v.speed, 0.7, 1.2) : DEFAULT_VOICEOVER_CONFIG.speed,
+		...(typeof v.polishTone === "string" ? { polishTone: v.polishTone } : {}),
 		segments,
 	};
 }

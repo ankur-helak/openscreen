@@ -61,7 +61,7 @@ captions for a meaningful slice of real recordings. See [§2](#2-captions--subti
 ## 2. Captions / Subtitles
 
 **Code:** `src/lib/captioning/*` · **UI:** `VideoEditor.tsx` (timeline "Generate captions" button) ·
-**Model:** `Xenova/whisper-tiny` via `@xenova/transformers`.
+**Model:** `Xenova/whisper-base.en` via `@xenova/transformers`.
 
 ### 🔴 BUG-1 — Web-demuxer fallback uses a WASM path that doesn't exist (High)
 - **Evidence:** `src/lib/captioning/extractMono16kWebDemuxer.ts:9-11` resolves

@@ -35,7 +35,9 @@ renderer. Authoritative conventions live in [`../docs/coding-style.md`](../docs/
      `native-bridge/store.ts` (immutable spread updates). Current domains: `transcript`
      (`services/transcriptService.ts` — fs-backed sidecar transcript cache + caption autosave
      drafts under `userData/transcripts/` and `userData/caption-drafts/`, keyed by a video stat
-     signature).
+     signature), `scriptPolish` (`services/scriptPolishService.ts` — main-process OpenAI call for
+     voiceover script polishing; BYO-key model with safeStorage-backed key persistence; renderer
+     only learns `hasKey`).
    - Platform dispatch via a `factory.ts` switching on `process.platform`
      (`win32` → WGC, `darwin` → ScreenCaptureKit, else telemetry-only fallback).
    - Contracts are shared in `../src/native/contracts.ts`; renderer calls

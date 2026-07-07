@@ -13,6 +13,7 @@ import type { CursorTelemetryLoadResult } from "../native-bridge/cursor/adapter"
 import { TelemetryCursorAdapter } from "../native-bridge/cursor/telemetryCursorAdapter";
 import { CursorService } from "../native-bridge/services/cursorService";
 import { ProjectService } from "../native-bridge/services/projectService";
+import { ScriptPolishService } from "../native-bridge/services/scriptPolishService";
 import { SystemService } from "../native-bridge/services/systemService";
 import { TranscriptService } from "../native-bridge/services/transcriptService";
 import { VoiceoverService } from "../native-bridge/services/voiceoverService";
@@ -42,6 +43,7 @@ export interface NativeBridgeContext {
 	getTranscriptCacheDir: () => string;
 	getCaptionDraftsDir: () => string;
 	getVoiceoverCacheDir: () => string;
+	getScriptPolishConfigDir: () => string;
 }
 
 function normalizePlatform(platform: NodeJS.Platform): NativePlatform {
@@ -126,6 +128,9 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 	});
 	const voiceoverService = new VoiceoverService({
 		cacheDir: context.getVoiceoverCacheDir(),
+	});
+	const scriptPolishService = new ScriptPolishService({
+		configDir: context.getScriptPolishConfigDir(),
 	});
 	const systemService = new SystemService({
 		store,
@@ -298,6 +303,35 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 								requestId,
 								"UNSUPPORTED_ACTION",
 								`Unsupported voiceover action: ${action}`,
+							);
+					}
+				}
+
+				case "scriptPolish": {
+					const action = request.action as string;
+					switch (request.action) {
+						case "polish":
+							return createSuccessResponse(
+								requestId,
+								await scriptPolishService.polish(
+									request.payload.segments,
+									request.payload.toneInstruction,
+								),
+							);
+						case "getKeyStatus":
+							return createSuccessResponse(requestId, await scriptPolishService.getKeyStatus());
+						case "setKey":
+							return createSuccessResponse(
+								requestId,
+								await scriptPolishService.setKey(request.payload.key),
+							);
+						case "clearKey":
+							return createSuccessResponse(requestId, await scriptPolishService.clearKey());
+						default:
+							return createErrorResponse(
+								requestId,
+								"UNSUPPORTED_ACTION",
+								`Unsupported scriptPolish action: ${action}`,
 							);
 					}
 				}

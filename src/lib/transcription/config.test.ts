@@ -6,7 +6,7 @@ describe("transcription config", () => {
 		const provider = getActiveProvider();
 		expect(provider.id).toBe(DEFAULT_PROVIDER_ID);
 		expect(provider.id).toBe("whisper-local");
-		expect(provider.model).toBe("whisper-tiny");
+		expect(provider.model).toBe("whisper-base.en");
 	});
 
 	it("resolves a provider by id", () => {

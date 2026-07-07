@@ -63,11 +63,13 @@ async function loadTranscriber(opts: {
 			// Dev (http://localhost): fetch from the remote CDN, which works there.
 			env.allowLocalModels = false;
 		}
-		// Default tiny weights only: the `output_attentions` revision regresses inference in
+		// Default weights only: the `output_attentions` revision regresses inference in
 		// some environments (empty chunks, thrown errors) while phrase mode works on this model.
+		// `whisper-base.en` (English-only) is meaningfully more robust to quiet/unclear speech than
+		// tiny while keeping word-level timestamps; see docs/feature-viability-audit.md.
 		const transcriber = (await pipeline(
 			"automatic-speech-recognition",
-			"Xenova/whisper-tiny",
+			"Xenova/whisper-base.en",
 		)) as unknown as TranscriberFn;
 		return transcriber;
 	});

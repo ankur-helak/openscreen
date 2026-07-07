@@ -42,6 +42,13 @@ function baseProps(overrides: Partial<VoiceoverPanelProps> = {}): VoiceoverPanel
 		onGenerateAll: vi.fn(),
 		onResetScript: vi.fn(),
 		onSelectSegment: vi.fn(),
+		polishStatuses: {},
+		hasOpenAiKey: false,
+		onPolishTone: vi.fn(),
+		onPolishAll: vi.fn(),
+		onPolishSegment: vi.fn(),
+		onRevertSegment: vi.fn(),
+		onOpenKeyDialog: vi.fn(),
 		...overrides,
 	};
 }

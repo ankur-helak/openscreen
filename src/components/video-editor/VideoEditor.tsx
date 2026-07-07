@@ -23,6 +23,7 @@ import {
 import { useI18n, useScopedT } from "@/contexts/I18nContext";
 import { useShortcuts } from "@/contexts/ShortcutsContext";
 import { INITIAL_EDITOR_STATE, useEditorHistory } from "@/hooks/useEditorHistory";
+import { useScriptPolish } from "@/hooks/useScriptPolish";
 import { useTranscript } from "@/hooks/useTranscript";
 import { useVoiceover } from "@/hooks/useVoiceover";
 import { type Locale } from "@/i18n/config";
@@ -79,6 +80,7 @@ import {
 	DEFAULT_GIF_SETTINGS,
 	DEFAULT_SOURCE_DIMENSIONS,
 } from "./editorDefaults";
+import { OpenAiKeyDialog } from "./OpenAiKeyDialog";
 import PlaybackControls from "./PlaybackControls";
 import {
 	createProjectData,
@@ -360,6 +362,16 @@ export default function VideoEditor() {
 		transcript,
 		onChange: handleVoiceoverChange,
 	});
+
+	const {
+		statuses: polishStatuses,
+		hasKey: hasOpenAiKey,
+		refreshKeyStatus,
+		polishAll,
+		polishSegment,
+		revertSegment,
+	} = useScriptPolish({ config: voiceover, onChange: handleVoiceoverChange });
+	const [openAiKeyDialogOpen, setOpenAiKeyDialogOpen] = useState(false);
 
 	// Seed the script the first time voiceover is enabled with an empty script and a ready transcript.
 	useEffect(() => {
@@ -1465,6 +1477,11 @@ export default function VideoEditor() {
 		setSelectedVoiceoverSegmentId(null);
 		pushState((prev) => ({ voiceover: { ...prev.voiceover, segments: [] } }));
 	}, [pushState]);
+	const handlePolishToneChange = useCallback(
+		(toneId: string) =>
+			pushState((prev) => ({ voiceover: { ...prev.voiceover, polishTone: toneId } })),
+		[pushState],
+	);
 	const handleSelectVoiceoverSegment = useCallback((id: string) => {
 		// Mirror the handleSelectZoom/Trim/etc. pattern: set own selection, null the siblings.
 		setSelectedVoiceoverSegmentId(id);
@@ -2534,6 +2551,13 @@ export default function VideoEditor() {
 		onGenerateAll: () => void generateAllVoiceover(),
 		onResetScript: handleResetVoiceoverScript,
 		onSelectSegment: handleSelectVoiceoverSegment,
+		polishStatuses,
+		hasOpenAiKey,
+		onPolishTone: handlePolishToneChange,
+		onPolishAll: () => void polishAll(),
+		onPolishSegment: (id: string) => void polishSegment(id),
+		onRevertSegment: revertSegment,
+		onOpenKeyDialog: () => setOpenAiKeyDialogOpen(true),
 	};
 
 	if (loading) {
@@ -3161,6 +3185,13 @@ export default function VideoEditor() {
 						: handleNewProjectConfirmDiscard
 				}
 				onCancel={() => setConfirmDialogVariant(null)}
+			/>
+
+			<OpenAiKeyDialog
+				open={openAiKeyDialogOpen}
+				hasKey={hasOpenAiKey}
+				onOpenChange={setOpenAiKeyDialogOpen}
+				onKeyStatusChange={() => void refreshKeyStatus()}
 			/>
 		</div>
 	);

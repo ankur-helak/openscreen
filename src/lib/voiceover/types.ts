@@ -13,6 +13,8 @@ export interface VoiceoverSegment {
 	sourceEndMs: number;
 	/** Editable script text (seeded from the transcript). */
 	text: string;
+	/** Snapshot taken at polish time; enables one-step per-segment revert. Absent when unpolished. */
+	textBeforePolish?: string;
 }
 
 /** A segment before an id is assigned — the output of segmentation. */
@@ -25,6 +27,8 @@ export interface VoiceoverConfig {
 	voice: string;
 	/** Kokoro playback rate baked into synthesis. Range 0.7–1.2; 1.0 = natural. */
 	speed: number;
+	/** Project-wide AI-polish tone preset id (see src/lib/script/tonePresets). Undefined → default. */
+	polishTone?: string;
 	segments: VoiceoverSegment[];
 }
 
@@ -34,6 +38,13 @@ export type SegmentSynthStatus =
 	| { state: "queued" }
 	| { state: "synthesizing" }
 	| { state: "ready"; audioKey: string; durationMs: number }
+	| { state: "error"; message: string };
+
+/** Runtime (non-undoable) AI-polish status for one segment. */
+export type SegmentPolishStatus =
+	| { state: "idle" }
+	| { state: "queued" }
+	| { state: "polishing" }
 	| { state: "error"; message: string };
 
 /** Disabled, empty script — the default for new/legacy projects. */
