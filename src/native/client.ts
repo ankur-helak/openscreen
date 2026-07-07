@@ -10,6 +10,9 @@ import {
 	type ProjectContext,
 	type ProjectFileResult,
 	type ProjectPathResult,
+	type ScriptPolishKeyResult,
+	type ScriptPolishKeyStatus,
+	type ScriptPolishResult,
 	type SystemCapabilities,
 	type TranscriptCacheResult,
 	type VoiceoverClipResult,
@@ -165,6 +168,33 @@ export const nativeBridgeClient = {
 				domain: "voiceover",
 				action: "putVoiceoverClip",
 				payload: { key, pcm, sampleRate },
+			}),
+	},
+	scriptPolish: {
+		polish: (
+			segments: { id: string; text: string; targetWords: number }[],
+			toneInstruction: string,
+		) =>
+			requireNativeBridgeData<ScriptPolishResult>({
+				domain: "scriptPolish",
+				action: "polish",
+				payload: { segments, toneInstruction },
+			}),
+		getKeyStatus: () =>
+			requireNativeBridgeData<ScriptPolishKeyStatus>({
+				domain: "scriptPolish",
+				action: "getKeyStatus",
+			}),
+		setKey: (key: string) =>
+			requireNativeBridgeData<ScriptPolishKeyResult>({
+				domain: "scriptPolish",
+				action: "setKey",
+				payload: { key },
+			}),
+		clearKey: () =>
+			requireNativeBridgeData<ScriptPolishKeyResult>({
+				domain: "scriptPolish",
+				action: "clearKey",
 			}),
 	},
 	cursor: {
