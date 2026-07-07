@@ -36,7 +36,8 @@ Screen Studio is an awesome product and this is definitely not a 1:1 clone. If y
 - Webcam overlay with picture-in-picture, drag-to-position, mirroring, and shape options.
 - Auto or manual zooms with adjustable depth, duration, easing, and pixel-precise position; auto-zoom follows your cursor as you work.
 - Custom cursor size, smoothing, and click effects, with cursor themes and post-recording path smoothing.
-- Automatic captions for voiceovers, generated on-device with no upload (works offline).
+- AI voiceover: generate natural-sounding narration entirely on-device from a script — no cloud, works offline.
+- Automatic captions, generated on-device with no upload (works offline), and optionally linked to the AI voiceover so the on-screen text stays in sync with the narration.
 - Wallpapers, solid colors, gradients, or your own background image.
 - Motion blur.
 - Crop, trim, and per-segment speed control on the timeline.
@@ -49,7 +50,9 @@ Screen Studio is an awesome product and this is definitely not a 1:1 clone. If y
 
 ## Installation
 
-Download the latest installer for your platform from the [GitHub Releases](https://github.com/siddharthvaddem/openscreen/releases) page.
+> **This is a fork** with extra features (on-device **AI voiceover**, script-linked captions, and macOS packaging fixes). Prebuilt **macOS** DMGs for this fork are published on the [fork's GitHub Releases](https://github.com/ankur-helak/openscreen/releases) page. The Homebrew, winget, and Nix instructions below track the original upstream project and won't include these fork-only features.
+
+Download the latest installer for your platform from the [GitHub Releases](https://github.com/ankur-helak/openscreen/releases) page.
 
 ### macOS
 
@@ -66,7 +69,7 @@ To uninstall: `brew uninstall --cask openscreen` (add `--zap` to also remove app
 
 #### Manual install (if you prefer)
 
-If you'd rather grab the `.dmg` directly from the [Releases page](https://github.com/siddharthvaddem/openscreen/releases) and encounter Gatekeeper blocking the app, you can bypass it by running the following command in your terminal after installation:
+If you'd rather grab the `.dmg` directly from the [Releases page](https://github.com/ankur-helak/openscreen/releases) and encounter Gatekeeper blocking the app, you can bypass it by running the following command in your terminal after installation:
 
 ```bash
 xattr -rd com.apple.quarantine /Applications/Openscreen.app
