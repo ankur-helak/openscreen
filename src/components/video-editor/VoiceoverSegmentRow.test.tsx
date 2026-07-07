@@ -16,6 +16,7 @@ function renderRow(overrides: Partial<React.ComponentProps<typeof VoiceoverSegme
 	const props = {
 		segment,
 		status: { state: "idle" } as SegmentSynthStatus,
+		polishStatus: { state: "idle" },
 		isSelected: false,
 		isAuditioning: false,
 		canGenerate: true,
@@ -25,6 +26,8 @@ function renderRow(overrides: Partial<React.ComponentProps<typeof VoiceoverSegme
 		onAudition: vi.fn(),
 		onStopAudition: vi.fn(),
 		onSelect: vi.fn(),
+		onPolish: vi.fn(),
+		onRevert: vi.fn(),
 		...overrides,
 	};
 	render(
@@ -57,6 +60,7 @@ describe("VoiceoverSegmentRow", () => {
 				<VoiceoverSegmentRow
 					segment={segment}
 					status={{ state: "idle" }}
+					polishStatus={{ state: "idle" }}
 					isSelected={false}
 					isAuditioning={false}
 					canGenerate
@@ -66,6 +70,8 @@ describe("VoiceoverSegmentRow", () => {
 					onAudition={vi.fn()}
 					onStopAudition={vi.fn()}
 					onSelect={vi.fn()}
+					onPolish={vi.fn()}
+					onRevert={vi.fn()}
 				/>
 			</I18nProvider>,
 		);
@@ -75,6 +81,7 @@ describe("VoiceoverSegmentRow", () => {
 				<VoiceoverSegmentRow
 					segment={segment}
 					status={{ state: "ready", audioKey: "k1", durationMs: 900 }}
+					polishStatus={{ state: "idle" }}
 					isSelected={false}
 					isAuditioning={false}
 					canGenerate
@@ -84,6 +91,8 @@ describe("VoiceoverSegmentRow", () => {
 					onAudition={vi.fn()}
 					onStopAudition={vi.fn()}
 					onSelect={vi.fn()}
+					onPolish={vi.fn()}
+					onRevert={vi.fn()}
 				/>
 			</I18nProvider>,
 		);
