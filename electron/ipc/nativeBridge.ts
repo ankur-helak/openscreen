@@ -12,6 +12,7 @@ import {
 import type { CursorTelemetryLoadResult } from "../native-bridge/cursor/adapter";
 import { TelemetryCursorAdapter } from "../native-bridge/cursor/telemetryCursorAdapter";
 import { CursorService } from "../native-bridge/services/cursorService";
+import { DocExportService } from "../native-bridge/services/docExportService";
 import { OpenAiKeyStore } from "../native-bridge/services/openAiKeyStore";
 import { ProjectService } from "../native-bridge/services/projectService";
 import { ScriptPolishService } from "../native-bridge/services/scriptPolishService";
@@ -136,6 +137,7 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 		legacyDir: context.getLegacyScriptPolishConfigDir(),
 	});
 	const scriptPolishService = new ScriptPolishService({ keyStore: openAiKeyStore });
+	const docExportService = new DocExportService({ keyStore: openAiKeyStore });
 	const systemService = new SystemService({
 		store,
 		getPlatform: () => platform,
@@ -336,6 +338,28 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 								requestId,
 								"UNSUPPORTED_ACTION",
 								`Unsupported scriptPolish action: ${action}`,
+							);
+					}
+				}
+
+				case "docExport": {
+					const action = request.action as string;
+					switch (request.action) {
+						case "generate":
+							return createSuccessResponse(
+								requestId,
+								await docExportService.generate(request.payload.steps, request.payload.context),
+							);
+						case "save":
+							return createSuccessResponse(
+								requestId,
+								await docExportService.save(request.payload.html),
+							);
+						default:
+							return createErrorResponse(
+								requestId,
+								"UNSUPPORTED_ACTION",
+								`Unsupported docExport action: ${action}`,
 							);
 					}
 				}
