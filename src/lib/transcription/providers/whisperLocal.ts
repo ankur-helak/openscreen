@@ -17,7 +17,7 @@ const MIN_SAMPLES = 800;
 /** In-renderer Whisper (transformers.js) provider. Wraps extract → trim-silence → transcribe. */
 export const whisperLocalProvider: TranscriptionProvider = {
 	id: "whisper-local",
-	model: "whisper-tiny",
+	model: "whisper-base.en",
 
 	async transcribe(videoUrl: string, opts: TranscribeOptions = {}): Promise<TranscribeVideoResult> {
 		const trimRegions: TrimRegion[] = opts.trimRegions ?? [];
