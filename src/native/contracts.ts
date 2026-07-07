@@ -124,11 +124,17 @@ export interface ScriptPolishResult {
 
 export interface ScriptPolishKeyStatus {
 	hasKey: boolean;
+	/** Whether OS secure storage (macOS Keychain, etc.) is available for persisting the key. */
+	secureStorageAvailable: boolean;
+	/** True when a key is set but only held in memory for this session (not persisted). */
+	sessionOnly: boolean;
 }
 
 export interface ScriptPolishKeyResult {
 	success: boolean;
 	message?: string;
+	/** Set when the key was accepted but only kept for this session (secure storage unavailable). */
+	sessionOnly?: boolean;
 }
 
 export interface DocExportGeneratedDoc {

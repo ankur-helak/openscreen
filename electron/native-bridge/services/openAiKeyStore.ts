@@ -28,6 +28,7 @@ export class OpenAiKeyStore {
 	private readonly legacyDir?: string;
 	private safeStorageImpl?: SafeStorageLike;
 	private migrated = false;
+	private sessionKey: string | null = null;
 
 	constructor(options: OpenAiKeyStoreOptions) {
 		this.configDir = options.configDir;
@@ -70,7 +71,8 @@ export class OpenAiKeyStore {
 		}
 	}
 
-	async readKey(): Promise<string | null> {
+	/** Read the persisted (encrypted, on-disk) key only. */
+	private async readPersistedKey(): Promise<string | null> {
 		await this.migrateIfNeeded();
 		try {
 			const buf = await readFile(this.keyFile());
@@ -80,19 +82,38 @@ export class OpenAiKeyStore {
 		}
 	}
 
-	async getKeyStatus(): Promise<{ hasKey: boolean }> {
-		return { hasKey: (await this.readKey()) !== null };
+	async readKey(): Promise<string | null> {
+		if (this.sessionKey !== null) return this.sessionKey;
+		return this.readPersistedKey();
 	}
 
-	async setKey(key: string): Promise<{ success: boolean; message?: string }> {
+	async getKeyStatus(): Promise<{
+		hasKey: boolean;
+		secureStorageAvailable: boolean;
+		sessionOnly: boolean;
+	}> {
+		const persisted = await this.readPersistedKey();
+		return {
+			hasKey: this.sessionKey !== null || persisted !== null,
+			secureStorageAvailable: this.ss().isEncryptionAvailable(),
+			sessionOnly: this.sessionKey !== null && persisted === null,
+		};
+	}
+
+	async setKey(
+		key: string,
+	): Promise<{ success: boolean; message?: string; sessionOnly?: boolean }> {
+		const trimmed = key.trim();
+		if (!trimmed) return { success: false, message: "Empty key." };
+		// No OS secure storage → keep the key in memory for this session only (never on disk).
+		if (!this.ss().isEncryptionAvailable()) {
+			this.sessionKey = trimmed;
+			return { success: true, sessionOnly: true };
+		}
 		try {
-			const trimmed = key.trim();
-			if (!trimmed) return { success: false, message: "Empty key." };
-			if (!this.ss().isEncryptionAvailable()) {
-				return { success: false, message: "Secure storage unavailable on this system." };
-			}
 			await mkdir(this.configDir, { recursive: true });
 			await writeFile(this.keyFile(), this.ss().encryptString(trimmed));
+			this.sessionKey = null; // now persisted; drop the in-memory copy
 			return { success: true };
 		} catch (error) {
 			return { success: false, message: error instanceof Error ? error.message : String(error) };
@@ -101,6 +122,7 @@ export class OpenAiKeyStore {
 
 	async clearKey(): Promise<{ success: boolean; message?: string }> {
 		try {
+			this.sessionKey = null;
 			await rm(this.keyFile(), { force: true });
 			// Also remove the legacy file (belt-and-suspenders, covers pre-migration clears / crash windows).
 			const legacy = this.legacyKeyFile();

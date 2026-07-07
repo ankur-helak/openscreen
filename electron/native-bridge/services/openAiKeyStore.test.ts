@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -7,6 +7,13 @@ import { OpenAiKeyStore } from "./openAiKeyStore";
 // Fake safeStorage: base64 "encryption" so tests need no OS keychain.
 const fakeSafeStorage = {
 	isEncryptionAvailable: () => true,
+	encryptString: (s: string) => Buffer.from(s, "utf8").toString("base64") as unknown as Buffer,
+	decryptString: (b: Buffer) => Buffer.from(String(b), "base64").toString("utf8"),
+};
+
+// Fake safeStorage that reports encryption UNAVAILABLE (e.g. keychain denied/locked).
+const fakeSafeStorageUnavailable = {
+	isEncryptionAvailable: () => false,
 	encryptString: (s: string) => Buffer.from(s, "utf8").toString("base64") as unknown as Buffer,
 	decryptString: (b: Buffer) => Buffer.from(String(b), "base64").toString("utf8"),
 };
@@ -69,5 +76,59 @@ describe("OpenAiKeyStore", () => {
 		// Second store (fresh instance, simulating a relaunch): key must NOT resurrect.
 		const store2 = new OpenAiKeyStore({ configDir, legacyDir, safeStorageImpl: fakeSafeStorage });
 		expect(await store2.readKey()).toBeNull();
+	});
+
+	it("falls back to a session-only key when secure storage is unavailable", async () => {
+		const store = new OpenAiKeyStore({
+			configDir: dir,
+			safeStorageImpl: fakeSafeStorageUnavailable,
+		});
+		const res = await store.setKey("sk-session");
+		expect(res.success).toBe(true);
+		expect(res.sessionOnly).toBe(true);
+		expect(await store.readKey()).toBe("sk-session");
+
+		const status = await store.getKeyStatus();
+		expect(status).toEqual({ hasKey: true, secureStorageAvailable: false, sessionOnly: true });
+
+		// Nothing was written to disk.
+		const files = await readdir(dir);
+		expect(files).not.toContain("openai-key.enc");
+	});
+
+	it("clearKey wipes a session-only key", async () => {
+		const store = new OpenAiKeyStore({
+			configDir: dir,
+			safeStorageImpl: fakeSafeStorageUnavailable,
+		});
+		await store.setKey("sk-session");
+		expect((await store.clearKey()).success).toBe(true);
+		expect(await store.readKey()).toBeNull();
+		expect((await store.getKeyStatus()).hasKey).toBe(false);
+	});
+
+	it("reports secureStorageAvailable and sessionOnly=false for a persisted key", async () => {
+		const store = new OpenAiKeyStore({ configDir: dir, safeStorageImpl: fakeSafeStorage });
+		await store.setKey("sk-persist");
+		expect(await store.getKeyStatus()).toEqual({
+			hasKey: true,
+			secureStorageAvailable: true,
+			sessionOnly: false,
+		});
+	});
+
+	it("prefers a session key over a persisted disk key", async () => {
+		let available = true;
+		const mutableFake = {
+			isEncryptionAvailable: () => available,
+			encryptString: (s: string) => Buffer.from(s, "utf8").toString("base64") as unknown as Buffer,
+			decryptString: (b: Buffer) => Buffer.from(String(b), "base64").toString("utf8"),
+		};
+		const store = new OpenAiKeyStore({ configDir: dir, safeStorageImpl: mutableFake });
+		await store.setKey("sk-disk"); // persisted while available
+		available = false;
+		const res = await store.setKey("sk-session"); // storage now unavailable → session
+		expect(res.sessionOnly).toBe(true);
+		expect(await store.readKey()).toBe("sk-session");
 	});
 });
