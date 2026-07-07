@@ -267,8 +267,8 @@ describe("wallpaper legacy normalization", () => {
 });
 
 describe("voiceover persistence", () => {
-	it("PROJECT_VERSION is 3", () => {
-		expect(PROJECT_VERSION).toBe(3);
+	it("PROJECT_VERSION is 4", () => {
+		expect(PROJECT_VERSION).toBe(4);
 	});
 
 	it("defaults voiceover to disabled/empty for legacy projects", () => {
@@ -296,5 +296,46 @@ describe("voiceover persistence", () => {
 		expect(normalized.voiceover.segments).toEqual([
 			{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 1000, text: "Hi." },
 		]);
+	});
+});
+
+describe("script-polish persistence", () => {
+	it("PROJECT_VERSION is 4", () => {
+		expect(PROJECT_VERSION).toBe(4);
+	});
+	it("preserves polishTone and per-segment textBeforePolish", () => {
+		const editor = normalizeProjectEditor({
+			voiceover: {
+				enabled: true,
+				engine: "kokoro-local",
+				voice: "af_heart",
+				speed: 1,
+				polishTone: "professional",
+				segments: [
+					{
+						id: "vo-1",
+						sourceStartMs: 0,
+						sourceEndMs: 2000,
+						text: "clean",
+						textBeforePolish: "raw",
+					},
+				],
+			},
+		} as never);
+		expect(editor.voiceover.polishTone).toBe("professional");
+		expect(editor.voiceover.segments[0].textBeforePolish).toBe("raw");
+	});
+	it("defaults polishTone to undefined and omits textBeforePolish for legacy projects", () => {
+		const editor = normalizeProjectEditor({
+			voiceover: {
+				enabled: true,
+				engine: "kokoro-local",
+				voice: "af_heart",
+				speed: 1,
+				segments: [{ id: "vo-1", sourceStartMs: 0, sourceEndMs: 2000, text: "hi" }],
+			},
+		} as never);
+		expect(editor.voiceover.polishTone).toBeUndefined();
+		expect(editor.voiceover.segments[0].textBeforePolish).toBeUndefined();
 	});
 });
