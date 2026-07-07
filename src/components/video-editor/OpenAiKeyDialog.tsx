@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -57,6 +57,8 @@ export function OpenAiKeyDialog({
 
 	const clear = async () => {
 		setBusy(true);
+		setNote(null);
+		setError(null);
 		try {
 			await nativeBridgeClient.scriptPolish.clearKey();
 			onKeyStatusChange();
@@ -64,6 +66,13 @@ export function OpenAiKeyDialog({
 			setBusy(false);
 		}
 	};
+
+	useEffect(() => {
+		if (!open) {
+			setNote(null);
+			setError(null);
+		}
+	}, [open]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
