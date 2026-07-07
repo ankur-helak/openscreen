@@ -37,7 +37,9 @@ renderer. Authoritative conventions live in [`../docs/coding-style.md`](../docs/
      drafts under `userData/transcripts/` and `userData/caption-drafts/`, keyed by a video stat
      signature), `scriptPolish` (`services/scriptPolishService.ts` — main-process OpenAI call for
      voiceover script polishing; BYO-key model with safeStorage-backed key persistence; renderer
-     only learns `hasKey`).
+     only learns `hasKey`), and `docExport` (`services/docExportService.ts` — main-process
+     multimodal OpenAI call (vision + transcript) that turns a recording into a self-contained
+     HTML + PDF walkthrough; shares the OpenAI key with `scriptPolish` via `OpenAiKeyStore`).
    - Platform dispatch via a `factory.ts` switching on `process.platform`
      (`win32` → WGC, `darwin` → ScreenCaptureKit, else telemetry-only fallback).
    - Contracts are shared in `../src/native/contracts.ts`; renderer calls

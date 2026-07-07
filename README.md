@@ -22,6 +22,7 @@ This fork builds on upstream OpenScreen with on-device narration + captioning, c
 
 - **AI script polish (cloud, bring-your-own-key)** — rewrite your recorded narration with OpenAI: pick a tone and each transcript segment is polished in place, so your on-device voiceover, script-linked captions, and timeline follow automatically. Per-segment revert and full undo are supported. Your API key is stored encrypted on-device and only the segment text is sent — never audio or video.
 - **AI voiceover** — generate natural-sounding narration from a script, entirely on-device (Kokoro-82M). No cloud, works offline; with per-segment audition, timeline-synced preview, and export.
+- **AI doc export (cloud, bring-your-own-key)** — turn a recording into a Trupeer-style visual walkthrough: interaction-anchored steps with composited screenshots, written by a multimodal OpenAI call (vision + transcript) and saved as a self-contained HTML file (plus PDF). Shares your encrypted OpenAI key with script polish; only the transcript and screenshots are sent — never audio or video.
 - **Script-linked captions** — on-screen captions derive from the voiceover script and stay in sync with the narration, styled by one global caption style.
 - **macOS fixes** — the app now shows in the Dock and owns the menu bar (previously ran as an accessory app with neither), and captions/voiceover no longer drop the last few seconds of long (~2 min+) recordings.
 
@@ -49,6 +50,7 @@ Screen Studio is an awesome product and this is definitely not a 1:1 clone. If y
 - Custom cursor size, smoothing, and click effects, with cursor themes and post-recording path smoothing.
 - AI voiceover: generate natural-sounding narration entirely on-device from a script — no cloud, works offline.
 - AI script polish (optional, cloud): rewrite the transcript with OpenAI using your own API key — per-segment and in place, so voiceover and captions stay in sync. Key stored encrypted on-device; only the text is sent.
+- AI doc export (optional, cloud): turn a recording into a visual product walkthrough (self-contained HTML + PDF) with interaction-anchored steps and composited screenshots, via a multimodal OpenAI call using your own key.
 - Automatic captions, generated on-device with no upload (works offline), and optionally linked to the AI voiceover so the on-screen text stays in sync with the narration.
 - Wallpapers, solid colors, gradients, or your own background image.
 - Motion blur.
