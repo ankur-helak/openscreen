@@ -337,6 +337,21 @@ export type NativeBridgeRequest =
 			requestId?: string;
 	  }
 	| {
+			domain: "docExport";
+			action: "generate";
+			payload: {
+				steps: { id: string; transcriptText: string; imageDataUrl: string }[];
+				context: { transcript: string };
+			};
+			requestId?: string;
+	  }
+	| {
+			domain: "docExport";
+			action: "save";
+			payload: { html: string };
+			requestId?: string;
+	  }
+	| {
 			domain: "cursor";
 			action: "getCapabilities";
 			payload?: EmptyPayload;
