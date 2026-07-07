@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n, useScopedT } from "@/contexts/I18nContext";
 import { useShortcuts } from "@/contexts/ShortcutsContext";
+import { useDocExport } from "@/hooks/useDocExport";
 import { INITIAL_EDITOR_STATE, useEditorHistory } from "@/hooks/useEditorHistory";
 import { useScriptPolish } from "@/hooks/useScriptPolish";
 import { useTranscript } from "@/hooks/useTranscript";
@@ -63,6 +64,7 @@ import {
 	computeEffectiveAnnotationRegions,
 } from "@/lib/voiceover/captionsFromScript";
 import { type LayoutClipInput, layoutVoiceover } from "@/lib/voiceover/layout";
+import { segmentTranscript } from "@/lib/voiceover/segmentation";
 import type { VoiceoverConfig } from "@/lib/voiceover/types";
 import { BackgroundLoadError } from "@/lib/wallpaper";
 import { nativeBridgeClient, useCursorRecordingData, useCursorTelemetry } from "@/native";
@@ -323,6 +325,7 @@ export default function VideoEditor() {
 	const t = useScopedT("editor");
 	const ts = useScopedT("settings");
 	const voT = useScopedT("voiceover");
+	const dt = useScopedT("docExport");
 	const availableLocales = getAvailableLocales();
 
 	const nextAnnotationIdRef = useRef(1);
@@ -371,6 +374,92 @@ export default function VideoEditor() {
 		polishSegment,
 		revertSegment,
 	} = useScriptPolish({ config: voiceover, onChange: handleVoiceoverChange });
+	const {
+		status: docExportStatus,
+		hasKey: hasDocExportKey,
+		refreshKeyStatus: refreshDocExportKey,
+		exportDoc,
+	} = useDocExport({
+		hasTranscript: transcript != null,
+		getFullTranscriptText: () => (transcript?.segments ?? []).map((s) => s.text).join(" "),
+		getDeriveInputs: () => {
+			const narration =
+				voiceover.segments.length > 0
+					? voiceover.segments.map((s) => ({
+							sourceStartMs: s.sourceStartMs,
+							sourceEndMs: s.sourceEndMs,
+							text: s.text,
+						}))
+					: segmentTranscript(transcript?.segments ?? []).map((d) => ({
+							sourceStartMs: d.sourceStartMs,
+							sourceEndMs: d.sourceEndMs,
+							text: d.text,
+						}));
+			const clicks = (cursorRecordingData?.samples ?? [])
+				.filter((s) => s.interactionType === "click")
+				.map((s) => s.timeMs);
+			return {
+				clicks,
+				zoomStarts: zoomRegions.map((z) => z.startMs),
+				annotationStarts: effectiveAnnotationRegions
+					.filter((a) => a.annotationSource !== "auto-caption")
+					.map((a) => a.startMs),
+				narration,
+				endMs: Math.max(
+					0,
+					...narration.map((n) => n.sourceEndMs),
+					...zoomRegions.map((z) => z.endMs),
+				),
+			};
+		},
+		getScreenshotConfig: () => {
+			if (!videoPath) return null;
+			const video = videoPlaybackRef.current?.video;
+			const sourceWidth = video?.videoWidth || DEFAULT_SOURCE_DIMENSIONS.width;
+			const sourceHeight = video?.videoHeight || DEFAULT_SOURCE_DIMENSIONS.height;
+			const effectiveSourceDimensions = calculateEffectiveSourceDimensions(
+				sourceWidth,
+				sourceHeight,
+				cropRegion,
+			);
+			const aspectRatioValue =
+				aspectRatio === "native"
+					? getNativeAspectRatioValue(sourceWidth, sourceHeight, cropRegion)
+					: getAspectRatioValue(aspectRatio);
+			const { width: exportWidth, height: exportHeight } = calculateMp4ExportSettings({
+				quality: exportQuality,
+				sourceWidth: effectiveSourceDimensions.width,
+				sourceHeight: effectiveSourceDimensions.height,
+				aspectRatioValue,
+			});
+			return {
+				videoUrl: videoPath,
+				frameRate: 30,
+				width: exportWidth,
+				height: exportHeight,
+				wallpaper,
+				zoomRegions,
+				showShadow: shadowIntensity > 0,
+				shadowIntensity,
+				showBlur,
+				motionBlurAmount,
+				borderRadius,
+				padding,
+				cropRegion,
+				cursorRecordingData,
+				cursorScale: effectiveShowCursor ? cursorSize : 0,
+				cursorSmoothing,
+				cursorMotionBlur,
+				cursorClickBounce,
+				cursorClipToBounds,
+				cursorTheme,
+				annotationRegions: effectiveAnnotationRegions,
+				cursorTelemetry,
+				cursorClickTimestamps,
+				platform: nativePlatform ?? "darwin",
+			};
+		},
+	});
 	const [openAiKeyDialogOpen, setOpenAiKeyDialogOpen] = useState(false);
 
 	// Seed the script the first time voiceover is enabled with an empty script and a ready transcript.
@@ -379,6 +468,13 @@ export default function VideoEditor() {
 			seedVoiceover();
 		}
 	}, [voiceover.enabled, voiceover.segments.length, transcript, seedVoiceover]);
+
+	// Surface Doc Export failures (a canceled save resets to idle and shows nothing).
+	useEffect(() => {
+		if (docExportStatus.state === "error" && docExportStatus.message !== "not-enough") {
+			toast.error(dt("failed"));
+		}
+	}, [docExportStatus, dt]);
 
 	const voiceoverPlacedClips = useMemo(() => {
 		if (!voiceover.enabled) return [];
@@ -3010,6 +3106,13 @@ export default function VideoEditor() {
 												: getAspectRatioValue(aspectRatio),
 										)}
 										onExport={handleOpenExportDialog}
+										onExportDoc={exportDoc}
+										canExportDoc={transcript != null}
+										docExportBusy={
+											docExportStatus.state !== "idle" && docExportStatus.state !== "error"
+										}
+										hasOpenAiKey={hasDocExportKey}
+										onAddOpenAiKey={() => setOpenAiKeyDialogOpen(true)}
 										onExportPanelOpen={() => {
 											setSelectedZoomId(null);
 											setSelectedTrimId(null);
@@ -3191,7 +3294,10 @@ export default function VideoEditor() {
 				open={openAiKeyDialogOpen}
 				hasKey={hasOpenAiKey}
 				onOpenChange={setOpenAiKeyDialogOpen}
-				onKeyStatusChange={() => void refreshKeyStatus()}
+				onKeyStatusChange={() => {
+					void refreshKeyStatus();
+					void refreshDocExportKey();
+				}}
 			/>
 		</div>
 	);
