@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "保存密钥",
 			"clear": "移除密钥",
-			"saveError": "无法保存密钥。"
+			"saveError": "无法保存密钥。",
+			"sessionOnlyHint": "系统钥匙串不可用,密钥将仅在本会话期间保留——您需要在重启后重新输入。",
+			"sessionOnlySaved": "已为本会话保存。您需要在重启后重新输入密钥。"
 		}
 	}
 }

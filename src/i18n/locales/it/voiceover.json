@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Salva chiave",
 			"clear": "Rimuovi chiave",
-			"saveError": "Impossibile salvare la chiave."
+			"saveError": "Impossibile salvare la chiave.",
+			"sessionOnlyHint": "Il portachiavi di sistema non è disponibile, quindi la chiave verrà conservata solo per questa sessione — dovrai reinserirla dopo il riavvio.",
+			"sessionOnlySaved": "Salvata per questa sessione. Dovrai reinserire la chiave dopo il riavvio."
 		}
 	}
 }

@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Salvar chave",
 			"clear": "Remover chave",
-			"saveError": "Não foi possível salvar a chave."
+			"saveError": "Não foi possível salvar a chave.",
+			"sessionOnlyHint": "Seu chaveiro do sistema não está disponível, então a chave será mantida apenas para esta sessão — você precisará inseri-la novamente após reiniciar.",
+			"sessionOnlySaved": "Salva para esta sessão. Você precisará inserir a chave novamente após reiniciar."
 		}
 	}
 }

@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Save key",
 			"clear": "Remove key",
-			"saveError": "Could not save the key."
+			"saveError": "Could not save the key.",
+			"sessionOnlyHint": "Your system keychain isn't available, so the key will be kept for this session only — you'll need to re-enter it after restarting.",
+			"sessionOnlySaved": "Saved for this session. You'll need to re-enter the key after restarting."
 		}
 	}
 }

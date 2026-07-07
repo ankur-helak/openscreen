@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Lưu khóa",
 			"clear": "Xóa khóa",
-			"saveError": "Không thể lưu khóa."
+			"saveError": "Không thể lưu khóa.",
+			"sessionOnlyHint": "Keychain hệ thống của bạn không khả dụng nên khóa sẽ chỉ được giữ cho phiên này — bạn sẽ cần nhập lại sau khi khởi động lại.",
+			"sessionOnlySaved": "Đã lưu cho phiên này. Bạn sẽ cần nhập lại khóa sau khi khởi động lại."
 		}
 	}
 }

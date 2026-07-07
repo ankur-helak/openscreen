@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "儲存金鑰",
 			"clear": "移除金鑰",
-			"saveError": "無法儲存金鑰。"
+			"saveError": "無法儲存金鑰。",
+			"sessionOnlyHint": "系統鑰匙圈無法使用,金鑰將僅在本工作階段期間保留——您需要在重新啟動後重新輸入。",
+			"sessionOnlySaved": "已為本工作階段儲存。您需要在重新啟動後重新輸入金鑰。"
 		}
 	}
 }

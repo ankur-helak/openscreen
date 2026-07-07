@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Guardar clave",
 			"clear": "Eliminar clave",
-			"saveError": "No se pudo guardar la clave."
+			"saveError": "No se pudo guardar la clave.",
+			"sessionOnlyHint": "Tu llavero del sistema no está disponible, por lo que la clave se guardará solo para esta sesión: tendrás que volver a introducirla después de reiniciar.",
+			"sessionOnlySaved": "Guardada para esta sesión. Tendrás que volver a introducir la clave después de reiniciar."
 		}
 	}
 }

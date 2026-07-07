@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "키 저장",
 			"clear": "키 제거",
-			"saveError": "키를 저장할 수 없습니다."
+			"saveError": "키를 저장할 수 없습니다.",
+			"sessionOnlyHint": "시스템 키체인을 사용할 수 없어 키가 이 세션 동안만 보관됩니다. 재시작 후 다시 입력해야 합니다.",
+			"sessionOnlySaved": "이 세션 동안 저장되었습니다. 재시작 후 키를 다시 입력해야 합니다."
 		}
 	}
 }

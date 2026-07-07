@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Anahtarı kaydet",
 			"clear": "Anahtarı kaldır",
-			"saveError": "Anahtar kaydedilemedi."
+			"saveError": "Anahtar kaydedilemedi.",
+			"sessionOnlyHint": "Sistem anahtarlığınız kullanılamıyor, bu nedenle anahtar yalnızca bu oturum için saklanacak — yeniden başlattıktan sonra tekrar girmeniz gerekecek.",
+			"sessionOnlySaved": "Bu oturum için kaydedildi. Yeniden başlattıktan sonra anahtarı tekrar girmeniz gerekecek."
 		}
 	}
 }

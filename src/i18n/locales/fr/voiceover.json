@@ -48,7 +48,9 @@
 			"placeholder": "sk-…",
 			"save": "Enregistrer la clé",
 			"clear": "Supprimer la clé",
-			"saveError": "Impossible d'enregistrer la clé."
+			"saveError": "Impossible d'enregistrer la clé.",
+			"sessionOnlyHint": "Votre trousseau système n'est pas disponible, la clé sera donc conservée uniquement pour cette session — vous devrez la saisir à nouveau après un redémarrage.",
+			"sessionOnlySaved": "Enregistrée pour cette session. Vous devrez saisir à nouveau la clé après un redémarrage."
 		}
 	}
 }
