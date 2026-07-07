@@ -201,9 +201,17 @@ export function createEditorWindow(): BrowserWindow {
 		if (HEADLESS) return;
 		win.show();
 		win.focus();
-		// Make OpenScreen the active app so the editor window owns the macOS menu bar
-		// (File/Edit/View) instead of whatever app was previously frontmost.
-		if (process.platform === "darwin") app.focus({ steal: true });
+		// Make OpenScreen a regular, menu-owning app AND the active app, so the editor window
+		// owns the macOS menu bar (File/Edit/View). Re-assert the activation policy here — not
+		// just at whenReady: on permission-triggered relaunches (parent = System Settings) and
+		// the HUD-overlay-first launch order, the app can still be an accessory ("UIElement") at
+		// this point, and app.focus() alone does NOT promote it out of accessory, leaving the
+		// menu bar unresponsive. setActivationPolicy("regular") is the reliable promotion.
+		if (process.platform === "darwin") {
+			app.setActivationPolicy("regular");
+			app.dock?.show();
+			app.focus({ steal: true });
+		}
 	});
 
 	// Inject dark background before any React paint so the sub-titlebar area never

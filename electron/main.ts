@@ -450,6 +450,13 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
+	// Re-assert regular activation policy so the app keeps owning the macOS menu bar after it
+	// regains focus (e.g. returning from System Settings' permission flow, which can leave us
+	// classified as an accessory "UIElement" app with a dead File/Edit/View menu).
+	if (process.platform === "darwin") {
+		app.setActivationPolicy("regular");
+		app.dock?.show();
+	}
 	// On macOS, re-open a window when the dock icon is clicked and none are open.
 	const hasVisibleWindow = BrowserWindow.getAllWindows().some((window) => {
 		if (window.isDestroyed() || !window.isVisible()) {
