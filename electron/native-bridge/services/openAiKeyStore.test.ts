@@ -52,4 +52,22 @@ describe("OpenAiKeyStore", () => {
 		const migrated = await readFile(path.join(dir, "openai-key.enc"));
 		expect(fakeSafeStorage.decryptString(migrated)).toBe("sk-legacy");
 	});
+
+	it("clearKey permanently removes a migrated legacy key (no resurrection on a fresh store)", async () => {
+		const legacyDir = await tmp();
+		const configDir = await tmp();
+		// Seed a legacy encrypted key.
+		await writeFile(
+			path.join(legacyDir, "openai-key.enc"),
+			fakeSafeStorage.encryptString("sk-legacy") as unknown as Buffer,
+		);
+		// First store: migration happens on readKey.
+		const store1 = new OpenAiKeyStore({ configDir, legacyDir, safeStorageImpl: fakeSafeStorage });
+		expect(await store1.readKey()).toBe("sk-legacy");
+		// User clears the key.
+		expect((await store1.clearKey()).success).toBe(true);
+		// Second store (fresh instance, simulating a relaunch): key must NOT resurrect.
+		const store2 = new OpenAiKeyStore({ configDir, legacyDir, safeStorageImpl: fakeSafeStorage });
+		expect(await store2.readKey()).toBeNull();
+	});
 });

@@ -44,10 +44,15 @@ export class OpenAiKeyStore {
 		return path.join(this.configDir, KEY_FILE);
 	}
 
+	private legacyKeyFile(): string | null {
+		return this.legacyDir ? path.join(this.legacyDir, KEY_FILE) : null;
+	}
+
 	private async migrateIfNeeded(): Promise<void> {
 		if (this.migrated || !this.legacyDir) return;
 		this.migrated = true;
-		const legacy = path.join(this.legacyDir, KEY_FILE);
+		const legacy = this.legacyKeyFile();
+		if (!legacy) return;
 		try {
 			await access(this.keyFile());
 			return; // new key already exists — nothing to migrate.
@@ -58,6 +63,8 @@ export class OpenAiKeyStore {
 			await access(legacy);
 			await mkdir(this.configDir, { recursive: true });
 			await copyFile(legacy, this.keyFile());
+			// Remove the legacy file so it cannot resurrect the key later.
+			await rm(legacy, { force: true });
 		} catch {
 			// no legacy key — nothing to do.
 		}
@@ -95,6 +102,11 @@ export class OpenAiKeyStore {
 	async clearKey(): Promise<{ success: boolean; message?: string }> {
 		try {
 			await rm(this.keyFile(), { force: true });
+			// Also remove the legacy file (belt-and-suspenders, covers pre-migration clears / crash windows).
+			const legacy = this.legacyKeyFile();
+			if (legacy) {
+				await rm(legacy, { force: true });
+			}
 			return { success: true };
 		} catch (error) {
 			return { success: false, message: error instanceof Error ? error.message : String(error) };
