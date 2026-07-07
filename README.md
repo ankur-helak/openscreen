@@ -16,6 +16,16 @@
 
 <p align="center"><strong>OpenScreen is your free, open-source alternative to Screen Studio.</strong></p>
 
+## ✨ What's new in this fork (v1.6.0)
+
+This fork builds on upstream OpenScreen with on-device narration + captioning and macOS packaging fixes:
+
+- **AI voiceover** — generate natural-sounding narration from a script, entirely on-device (Kokoro-82M). No cloud, works offline; with per-segment audition, timeline-synced preview, and export.
+- **Script-linked captions** — on-screen captions derive from the voiceover script and stay in sync with the narration, styled by one global caption style.
+- **macOS fixes** — the app now shows in the Dock and owns the menu bar (previously ran as an accessory app with neither), and captions/voiceover no longer drop the last few seconds of long (~2 min+) recordings.
+
+📦 **Download:** [macOS DMGs on the Releases page](https://github.com/ankur-helak/openscreen/releases/latest) — Apple Silicon & Intel.
+
 If you don't want to pay $29/month for Screen Studio but want a version that does what most people seem to need - quick, polished product demos and walkthroughs you'd post on X, Reddit or Youtube. OpenScreen does not offer every Screen Studio feature, but covers a lot of the core functionality.
 
 Screen Studio is an awesome product and this is definitely not a 1:1 clone. If you just want something fully free and open source, this project should cover most of your needs.
