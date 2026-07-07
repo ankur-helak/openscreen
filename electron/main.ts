@@ -470,10 +470,14 @@ app.on("will-quit", () => {
 });
 
 app.whenReady().then(async () => {
-	// Force "regular" activation policy so the Dock icon appears. The HUD overlay
-	// (transparent, frameless, skipTaskbar) is the first window, and AppKit would
-	// otherwise classify us as an accessory app.
+	// Force "regular" activation policy so the Dock icon appears AND the app can own the macOS
+	// menu bar (File/Edit/View). The HUD overlay (transparent, frameless, skipTaskbar,
+	// ignore-mouse-events) is the first window, so AppKit classifies us as an accessory
+	// ("UIElement") app — dock.show() alone does NOT reliably promote us out of that, leaving no
+	// Dock icon and the menu bar owned by whatever app was previously active. Setting the
+	// activation policy explicitly is the reliable fix.
 	if (process.platform === "darwin") {
+		app.setActivationPolicy("regular");
 		app.dock?.show();
 	}
 

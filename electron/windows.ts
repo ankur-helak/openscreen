@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { BrowserWindow, ipcMain, screen } from "electron";
+import { app, BrowserWindow, ipcMain, screen } from "electron";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -198,7 +198,12 @@ export function createEditorWindow(): BrowserWindow {
 
 	// Show only once painted to avoid a white flash on cold Vite start.
 	win.once("ready-to-show", () => {
-		if (!HEADLESS) win.show();
+		if (HEADLESS) return;
+		win.show();
+		win.focus();
+		// Make OpenScreen the active app so the editor window owns the macOS menu bar
+		// (File/Edit/View) instead of whatever app was previously frontmost.
+		if (process.platform === "darwin") app.focus({ steal: true });
 	});
 
 	// Inject dark background before any React paint so the sub-titlebar area never
