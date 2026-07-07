@@ -1,8 +1,12 @@
 import type { TrimRegion } from "@/components/video-editor/types";
 import type { CaptionSegment } from "@/lib/captioning";
 
-/** Schema version stamped into cached transcripts so the cache can be invalidated on change. */
-export const TRANSCRIPT_SCHEMA_VERSION = 1;
+/**
+ * Schema version stamped into cached transcripts so the cache can be invalidated on change.
+ * Bumped to 2: transcription now repairs Whisper's hallucinated off-the-end tail
+ * (see `repairHallucinatedTail`), so pre-fix cached transcripts must regenerate.
+ */
+export const TRANSCRIPT_SCHEMA_VERSION = 2;
 
 /** A generated transcript: the raw speech-to-text source of truth (distinct from caption overlays). */
 export interface Transcript {

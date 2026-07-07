@@ -176,6 +176,74 @@ function extractChunksFromAsrResult(result: unknown): Array<{
 }
 
 /**
+ * Keep only the first, non-repeating run of a hallucinated word sequence: stop at the first
+ * point where a 3-word window repeats an earlier one (a Whisper repetition loop) and drop the
+ * repeated remainder. Sequences with no detected loop are returned unchanged.
+ */
+function collapseRepetition(words: string[]): string[] {
+	const WINDOW = 3;
+	if (words.length <= WINDOW) return words;
+	const seen = new Set<string>();
+	const kept: string[] = [];
+	for (const word of words) {
+		kept.push(word);
+		if (kept.length >= WINDOW) {
+			const gram = kept
+				.slice(kept.length - WINDOW)
+				.join(" ")
+				.toLowerCase();
+			if (seen.has(gram)) {
+				kept.length -= WINDOW;
+				return kept;
+			}
+			seen.add(gram);
+		}
+	}
+	return kept;
+}
+
+/**
+ * Whisper word-timestamp passes occasionally hallucinate a repetition loop at the end of a clip
+ * and stamp the trailing words with a start time past the real audio duration (the end is
+ * clamped to the duration but the start is not, so `start >= end` and the words are anchored off
+ * the timeline — never rendered as captions and never voiced). This detects that off-the-end
+ * tail, collapses the repeated phrase to one occurrence, and redistributes the recovered words
+ * across the leftover time so the final seconds still get captions/voiceover. Healthy
+ * transcripts (nothing anchored past the end) are returned unchanged.
+ */
+export function repairHallucinatedTail(
+	segments: CaptionSegment[],
+	audioDurationSec: number,
+): CaptionSegment[] {
+	const EPS = 1e-3;
+	const isOffTheEnd = (s: CaptionSegment) => s.startSec >= audioDurationSec - EPS;
+
+	if (!segments.some(isOffTheEnd)) return segments;
+
+	const valid = segments.filter((s) => !isOffTheEnd(s));
+	const bad = segments.filter(isOffTheEnd);
+
+	const lastValidEnd = valid.reduce(
+		(max, s) => Math.max(max, Math.min(s.endSec, audioDurationSec)),
+		0,
+	);
+	const gap = audioDurationSec - lastValidEnd;
+	if (gap <= EPS) return valid;
+
+	const words = collapseRepetition(bad.map((s) => s.text));
+	if (words.length === 0) return valid;
+
+	const per = gap / words.length;
+	const recovered: CaptionSegment[] = words.map((text, i) => ({
+		startSec: lastValidEnd + i * per,
+		endSec: lastValidEnd + (i + 1) * per,
+		text,
+	}));
+
+	return [...valid, ...recovered];
+}
+
+/**
  * Drives Whisper over (possibly sliced) mono 16 kHz audio and returns timed segments.
  * Long audio is split so one pass doesn't exhaust WASM memory; timestamps are shifted
  * back onto the full timeline. Tries word- then phrase-level timestamps, with a
@@ -260,7 +328,10 @@ export async function runTranscription(
 			}
 		}
 		if (segments.length > 0) {
-			return { segments, granularity: timestampMode };
+			return {
+				segments: repairHallucinatedTail(segments, samples.length / 16_000),
+				granularity: timestampMode,
+			};
 		}
 	}
 
