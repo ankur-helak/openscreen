@@ -1,0 +1,11 @@
+{
+	"title": "Xuất tài liệu",
+	"button": "Xuất tài liệu",
+	"busy": "Đang tạo tài liệu…",
+	"disclosure": "Bản ghi chép và ảnh chụp màn hình từ bản ghi này được gửi đến OpenAI để tạo tài liệu.",
+	"addKey": "Thêm khóa OpenAI",
+	"noTranscript": "Ghi hoặc mở video có giọng nói — tài liệu được tạo từ bản ghi chép của video.",
+	"notEnough": "Không đủ nội dung trong bản ghi này để tạo hướng dẫn từng bước.",
+	"saved": "Đã lưu hướng dẫn từng bước",
+	"failed": "Xuất tài liệu thất bại"
+}

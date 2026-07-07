@@ -1,0 +1,11 @@
+{
+	"title": "Belge dışa aktarımı",
+	"button": "Belgeyi dışa aktar",
+	"busy": "Belge oluşturuluyor…",
+	"disclosure": "Bu kaydın transkripti ve ekran görüntüleri, belgeyi oluşturmak için OpenAI'ye gönderilir.",
+	"addKey": "OpenAI anahtarı ekle",
+	"noTranscript": "Konuşma içeren bir video kaydedin veya açın — belge, transkriptinden oluşturulur.",
+	"notEnough": "Bu kayıtta adım adım kılavuz oluşturmak için yeterli içerik yok.",
+	"saved": "Adım adım kılavuz kaydedildi",
+	"failed": "Belge dışa aktarımı başarısız"
+}

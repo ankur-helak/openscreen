@@ -23,6 +23,7 @@ export const I18N_NAMESPACES = [
 	"shortcuts",
 	"timeline",
 	"voiceover",
+	"docExport",
 ] as const;
 
 export type Locale = string;

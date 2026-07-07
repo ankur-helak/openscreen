@@ -297,6 +297,11 @@ interface SettingsPanelProps {
 	onGifSizePresetChange?: (preset: GifSizePreset) => void;
 	gifOutputDimensions?: { width: number; height: number };
 	onExport?: () => void;
+	onExportDoc?: () => void;
+	canExportDoc?: boolean;
+	docExportBusy?: boolean;
+	hasOpenAiKey?: boolean;
+	onAddOpenAiKey?: () => void;
 	onExportPanelOpen?: () => void;
 	unsavedExport?: {
 		arrayBuffer: ArrayBuffer;
@@ -447,6 +452,11 @@ export function SettingsPanel({
 	onGifSizePresetChange,
 	gifOutputDimensions = DEFAULT_GIF_SETTINGS.outputDimensions,
 	onExport,
+	onExportDoc,
+	canExportDoc,
+	docExportBusy,
+	hasOpenAiKey,
+	onAddOpenAiKey,
 	onExportPanelOpen,
 	unsavedExport,
 	onSaveUnsavedExport,
@@ -502,6 +512,7 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
 	const t = useScopedT("settings");
 	const vt = useScopedT("voiceover");
+	const dt = useScopedT("docExport");
 	const [activePanelMode, setActivePanelMode] = useState<SettingsPanelMode>("background");
 	const sourceDimensions = formatSourceDimensions(videoElement, cropRegion);
 	// Resolved URLs are for DOM rendering only. We persist the canonical
@@ -2205,6 +2216,28 @@ export function SettingsPanel({
 							<Download className="w-4 h-4" />
 							{exportFormat === "gif" ? t("export.gifButton") : t("export.videoButton")}
 						</Button>
+						{onExportDoc ? (
+							<div className="mt-2 flex flex-col gap-1">
+								{hasOpenAiKey ? (
+									<Button
+										type="button"
+										variant="secondary"
+										disabled={!canExportDoc || docExportBusy}
+										onClick={onExportDoc}
+									>
+										{docExportBusy ? dt("busy") : dt("button")}
+									</Button>
+								) : (
+									<Button type="button" variant="secondary" onClick={onAddOpenAiKey}>
+										{dt("addKey")}
+									</Button>
+								)}
+								<p className="text-[11px] leading-tight text-slate-400">{dt("disclosure")}</p>
+								{!canExportDoc ? (
+									<p className="text-[11px] leading-tight text-slate-400">{dt("noTranscript")}</p>
+								) : null}
+							</div>
+						) : null}
 					</>
 				)}
 

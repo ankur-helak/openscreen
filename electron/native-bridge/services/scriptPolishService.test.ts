@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OpenAiKeyStore } from "./openAiKeyStore";
 import { ScriptPolishService } from "./scriptPolishService";
 
 // Fake safeStorage: reversible base64 "encryption" so we exercise the file round-trip.
@@ -20,7 +21,8 @@ afterEach(async () => {
 });
 
 function makeService(fetchImpl?: typeof fetch) {
-	return new ScriptPolishService({ configDir: dir, fetchImpl, safeStorageImpl: fakeSafeStorage });
+	const keyStore = new OpenAiKeyStore({ configDir: dir, safeStorageImpl: fakeSafeStorage });
+	return new ScriptPolishService({ keyStore, fetchImpl });
 }
 
 describe("ScriptPolishService key management", () => {

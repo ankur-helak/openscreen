@@ -73,7 +73,7 @@ import {
 import { createThreeDPass, type ThreeDPass } from "./threeDPass";
 import { drawWebcamFrameImage } from "./webcamFrameDrawing";
 
-interface FrameRenderConfig {
+export interface FrameRenderConfig {
 	width: number;
 	height: number;
 	wallpaper: string;

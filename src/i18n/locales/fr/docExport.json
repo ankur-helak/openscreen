@@ -1,0 +1,11 @@
+{
+	"title": "Exportation de document",
+	"button": "Exporter le document",
+	"busy": "Création du document…",
+	"disclosure": "La transcription et les captures d'écran de cet enregistrement sont envoyées à OpenAI pour générer le document.",
+	"addKey": "Ajouter une clé OpenAI",
+	"noTranscript": "Enregistrez ou ouvrez une vidéo avec de la parole : le document est généré à partir de sa transcription.",
+	"notEnough": "Pas assez de contenu dans cet enregistrement pour créer un guide.",
+	"saved": "Guide enregistré",
+	"failed": "Échec de l'exportation du document"
+}

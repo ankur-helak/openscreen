@@ -131,6 +131,28 @@ export interface ScriptPolishKeyResult {
 	message?: string;
 }
 
+export interface DocExportGeneratedDoc {
+	title: string;
+	overview: string;
+	audience: string[];
+	learn: string[];
+	steps: { id: string; heading: string; body: string }[];
+}
+
+export interface DocExportResult {
+	success: boolean;
+	doc?: DocExportGeneratedDoc;
+	message?: string;
+	code?: "no-key" | "api-error" | "invalid-response";
+}
+
+export interface DocExportSaveResult {
+	success: boolean;
+	path?: string;
+	canceled?: boolean;
+	message?: string;
+}
+
 export type NativeBridgeErrorCode =
 	| "INVALID_REQUEST"
 	| "UNSUPPORTED_ACTION"
@@ -312,6 +334,21 @@ export type NativeBridgeRequest =
 			domain: "scriptPolish";
 			action: "clearKey";
 			payload?: EmptyPayload;
+			requestId?: string;
+	  }
+	| {
+			domain: "docExport";
+			action: "generate";
+			payload: {
+				steps: { id: string; transcriptText: string; imageDataUrl: string }[];
+				context: { transcript: string };
+			};
+			requestId?: string;
+	  }
+	| {
+			domain: "docExport";
+			action: "save";
+			payload: { html: string };
 			requestId?: string;
 	  }
 	| {

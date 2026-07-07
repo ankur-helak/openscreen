@@ -1,100 +1,51 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { safeStorage } from "electron";
 import type {
 	ScriptPolishKeyResult,
 	ScriptPolishKeyStatus,
 	ScriptPolishResult,
 } from "../../../src/native/contracts";
+import type { OpenAiKeyStore } from "./openAiKeyStore";
 
 /** Hard-coded v1 model (see plan Global Constraints). */
 const SCRIPT_POLISH_MODEL = "gpt-4o-mini";
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-const KEY_FILE = "openai-key.enc";
-
-type SafeStorageLike = {
-	isEncryptionAvailable(): boolean;
-	encryptString(plainText: string): Buffer;
-	decryptString(encrypted: Buffer): string;
-};
 
 interface ScriptPolishServiceOptions {
-	/** Directory for the encrypted key file (e.g. userData/script-polish). */
-	configDir: string;
+	/** Shared OpenAI key store. */
+	keyStore: OpenAiKeyStore;
 	/** Injectable for tests; defaults to global fetch. */
 	fetchImpl?: typeof fetch;
-	/** Injectable for tests; defaults to Electron safeStorage (lazy-required). */
-	safeStorageImpl?: SafeStorageLike;
 }
 
 /**
- * Runs the OpenAI script-polish call in the main process and owns the BYO API key,
- * stored encrypted via Electron safeStorage. The renderer never receives the key —
- * only `hasKey`. v1 sends segment TEXT only.
+ * Runs the OpenAI script-polish call in the main process. The BYO key is owned by the
+ * shared OpenAiKeyStore; the renderer never receives it — only `hasKey`. v1 sends text only.
  */
 export class ScriptPolishService {
-	private readonly configDir: string;
+	private readonly keyStore: OpenAiKeyStore;
 	private readonly fetchImpl: typeof fetch;
-	private safeStorageImpl?: SafeStorageLike;
 
 	constructor(options: ScriptPolishServiceOptions) {
-		this.configDir = options.configDir;
+		this.keyStore = options.keyStore;
 		this.fetchImpl = options.fetchImpl ?? fetch;
-		this.safeStorageImpl = options.safeStorageImpl;
-	}
-
-	private safeStorage(): SafeStorageLike {
-		// Use injected impl (tests) or top-level import (production).
-		this.safeStorageImpl ??= safeStorage;
-		return this.safeStorageImpl;
-	}
-
-	private keyFile(): string {
-		return path.join(this.configDir, KEY_FILE);
-	}
-
-	private async readKey(): Promise<string | null> {
-		try {
-			const buf = await readFile(this.keyFile());
-			return this.safeStorage().decryptString(buf);
-		} catch {
-			return null;
-		}
 	}
 
 	async getKeyStatus(): Promise<ScriptPolishKeyStatus> {
-		return { hasKey: (await this.readKey()) !== null };
+		return this.keyStore.getKeyStatus();
 	}
 
 	async setKey(key: string): Promise<ScriptPolishKeyResult> {
-		try {
-			const trimmed = key.trim();
-			if (!trimmed) return { success: false, message: "Empty key." };
-			if (!this.safeStorage().isEncryptionAvailable()) {
-				return { success: false, message: "Secure storage unavailable on this system." };
-			}
-			await mkdir(this.configDir, { recursive: true });
-			await writeFile(this.keyFile(), this.safeStorage().encryptString(trimmed));
-			return { success: true };
-		} catch (error) {
-			return { success: false, message: error instanceof Error ? error.message : String(error) };
-		}
+		return this.keyStore.setKey(key);
 	}
 
 	async clearKey(): Promise<ScriptPolishKeyResult> {
-		try {
-			await rm(this.keyFile(), { force: true });
-			return { success: true };
-		} catch (error) {
-			return { success: false, message: error instanceof Error ? error.message : String(error) };
-		}
+		return this.keyStore.clearKey();
 	}
 
 	async polish(
 		segments: { id: string; text: string; targetWords: number }[],
 		toneInstruction: string,
 	): Promise<ScriptPolishResult> {
-		const key = await this.readKey();
+		const key = await this.keyStore.readKey();
 		if (!key) return { success: false, code: "no-key", message: "No OpenAI API key set." };
 
 		const system = [

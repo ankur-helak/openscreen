@@ -3,6 +3,8 @@ import {
 	type CursorCapabilities,
 	type CursorRecordingData,
 	type CursorTelemetryPoint,
+	type DocExportResult,
+	type DocExportSaveResult,
 	NATIVE_BRIDGE_CHANNEL,
 	type NativeBridgeRequest,
 	type NativeBridgeResponse,
@@ -195,6 +197,23 @@ export const nativeBridgeClient = {
 			requireNativeBridgeData<ScriptPolishKeyResult>({
 				domain: "scriptPolish",
 				action: "clearKey",
+			}),
+	},
+	docExport: {
+		generate: (
+			steps: { id: string; transcriptText: string; imageDataUrl: string }[],
+			context: { transcript: string },
+		) =>
+			requireNativeBridgeData<DocExportResult>({
+				domain: "docExport",
+				action: "generate",
+				payload: { steps, context },
+			}),
+		save: (html: string) =>
+			requireNativeBridgeData<DocExportSaveResult>({
+				domain: "docExport",
+				action: "save",
+				payload: { html },
 			}),
 	},
 	cursor: {
