@@ -12,6 +12,7 @@ import {
 import type { CursorTelemetryLoadResult } from "../native-bridge/cursor/adapter";
 import { TelemetryCursorAdapter } from "../native-bridge/cursor/telemetryCursorAdapter";
 import { CursorService } from "../native-bridge/services/cursorService";
+import { OpenAiKeyStore } from "../native-bridge/services/openAiKeyStore";
 import { ProjectService } from "../native-bridge/services/projectService";
 import { ScriptPolishService } from "../native-bridge/services/scriptPolishService";
 import { SystemService } from "../native-bridge/services/systemService";
@@ -43,7 +44,8 @@ export interface NativeBridgeContext {
 	getTranscriptCacheDir: () => string;
 	getCaptionDraftsDir: () => string;
 	getVoiceoverCacheDir: () => string;
-	getScriptPolishConfigDir: () => string;
+	getOpenAiConfigDir: () => string;
+	getLegacyScriptPolishConfigDir: () => string;
 }
 
 function normalizePlatform(platform: NodeJS.Platform): NativePlatform {
@@ -129,9 +131,11 @@ export function registerNativeBridgeHandlers(context: NativeBridgeContext) {
 	const voiceoverService = new VoiceoverService({
 		cacheDir: context.getVoiceoverCacheDir(),
 	});
-	const scriptPolishService = new ScriptPolishService({
-		configDir: context.getScriptPolishConfigDir(),
+	const openAiKeyStore = new OpenAiKeyStore({
+		configDir: context.getOpenAiConfigDir(),
+		legacyDir: context.getLegacyScriptPolishConfigDir(),
 	});
+	const scriptPolishService = new ScriptPolishService({ keyStore: openAiKeyStore });
 	const systemService = new SystemService({
 		store,
 		getPlatform: () => platform,

@@ -2915,6 +2915,7 @@ export function registerIpcHandlers(
 		getTranscriptCacheDir: () => path.join(app.getPath("userData"), "transcripts"),
 		getCaptionDraftsDir: () => path.join(app.getPath("userData"), "caption-drafts"),
 		getVoiceoverCacheDir: () => path.join(app.getPath("userData"), "voiceovers"),
-		getScriptPolishConfigDir: () => path.join(app.getPath("userData"), "script-polish"),
+		getOpenAiConfigDir: () => path.join(app.getPath("userData"), "openai"),
+		getLegacyScriptPolishConfigDir: () => path.join(app.getPath("userData"), "script-polish"),
 	});
 }
