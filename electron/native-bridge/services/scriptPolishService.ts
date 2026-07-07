@@ -1,5 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { safeStorage } from "electron";
 import type {
 	ScriptPolishKeyResult,
 	ScriptPolishKeyStatus,
@@ -43,10 +44,8 @@ export class ScriptPolishService {
 	}
 
 	private safeStorage(): SafeStorageLike {
-		if (!this.safeStorageImpl) {
-			// Lazy require so tests never touch Electron.
-			this.safeStorageImpl = require("electron").safeStorage as SafeStorageLike;
-		}
+		// Use injected impl (tests) or top-level import (production).
+		this.safeStorageImpl ??= safeStorage;
 		return this.safeStorageImpl;
 	}
 
@@ -119,6 +118,7 @@ export class ScriptPolishService {
 						{ role: "user", content: user },
 					],
 				}),
+				signal: AbortSignal.timeout(30_000),
 			});
 		} catch (error) {
 			return {

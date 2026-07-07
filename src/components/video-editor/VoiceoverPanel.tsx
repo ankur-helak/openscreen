@@ -253,7 +253,7 @@ export function VoiceoverPanel({
 								onStopAudition={audition.stop}
 								onSelect={() => onSelectSegment(segment.id)}
 								polishStatus={polishStatuses[segment.id] ?? { state: "idle" }}
-								canPolish={hasOpenAiKey}
+								canPolish={hasOpenAiKey && config.enabled}
 								onPolish={() => onPolishSegment(segment.id)}
 								onRevert={() => onRevertSegment(segment.id)}
 							/>
