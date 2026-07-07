@@ -369,6 +369,7 @@ export default function VideoEditor() {
 	const {
 		statuses: polishStatuses,
 		hasKey: hasOpenAiKey,
+		secureStorageAvailable: openAiSecureStorageAvailable,
 		refreshKeyStatus,
 		polishAll,
 		polishSegment,
@@ -3293,6 +3294,7 @@ export default function VideoEditor() {
 			<OpenAiKeyDialog
 				open={openAiKeyDialogOpen}
 				hasKey={hasOpenAiKey}
+				secureStorageAvailable={openAiSecureStorageAvailable}
 				onOpenChange={setOpenAiKeyDialogOpen}
 				onKeyStatusChange={() => {
 					void refreshKeyStatus();

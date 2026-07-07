@@ -6,6 +6,7 @@ import { nativeBridgeClient } from "@/native/client";
 export interface UseScriptPolishResult {
 	statuses: Record<string, SegmentPolishStatus>;
 	hasKey: boolean;
+	secureStorageAvailable: boolean;
 	refreshKeyStatus: () => Promise<void>;
 	polishAll: () => Promise<void>;
 	polishSegment: (id: string) => Promise<void>;
@@ -24,14 +25,17 @@ export function useScriptPolish(params: {
 	const { config, onChange } = params;
 	const [statuses, setStatuses] = useState<Record<string, SegmentPolishStatus>>({});
 	const [hasKey, setHasKey] = useState(false);
+	const [secureStorageAvailable, setSecureStorageAvailable] = useState(true);
 
 	const configRef = useRef(config);
 	configRef.current = config;
 
 	const refreshKeyStatus = useCallback(async () => {
 		try {
-			const { hasKey: present } = await nativeBridgeClient.scriptPolish.getKeyStatus();
+			const { hasKey: present, secureStorageAvailable: secure } =
+				await nativeBridgeClient.scriptPolish.getKeyStatus();
 			setHasKey(present);
+			setSecureStorageAvailable(secure);
 		} catch (error) {
 			console.warn("[useScriptPolish] key status failed:", error);
 			setHasKey(false);
@@ -119,5 +123,13 @@ export function useScriptPolish(params: {
 		[onChange],
 	);
 
-	return { statuses, hasKey, refreshKeyStatus, polishAll, polishSegment, revertSegment };
+	return {
+		statuses,
+		hasKey,
+		secureStorageAvailable,
+		refreshKeyStatus,
+		polishAll,
+		polishSegment,
+		revertSegment,
+	};
 }
