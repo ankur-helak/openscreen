@@ -13,9 +13,15 @@ import { Switch } from "@/components/ui/switch";
 import { useScopedT } from "@/contexts/I18nContext";
 import { useClipAudition } from "@/hooks/useClipAudition";
 import type { ResolvedClip } from "@/hooks/useVoiceover";
+import { DEFAULT_TONE_ID, TONE_PRESETS } from "@/lib/script";
 import { KOKORO_VOICES } from "@/lib/tts/voices";
 import { cn } from "@/lib/utils";
-import type { SegmentSynthStatus, VoiceoverConfig, VoiceoverSegment } from "@/lib/voiceover/types";
+import type {
+	SegmentPolishStatus,
+	SegmentSynthStatus,
+	VoiceoverConfig,
+	VoiceoverSegment,
+} from "@/lib/voiceover/types";
 import { VoiceoverSegmentRow } from "./VoiceoverSegmentRow";
 
 const SPEED_MIN = 0.7;
@@ -40,6 +46,13 @@ export interface VoiceoverPanelProps {
 	onGenerateAll: () => void;
 	onResetScript: () => void;
 	onSelectSegment: (id: string) => void;
+	polishStatuses: Record<string, SegmentPolishStatus>;
+	hasOpenAiKey: boolean;
+	onPolishTone: (toneId: string) => void;
+	onPolishAll: () => void;
+	onPolishSegment: (id: string) => void;
+	onRevertSegment: (id: string) => void;
+	onOpenKeyDialog: () => void;
 }
 
 export function VoiceoverPanel({
@@ -60,6 +73,13 @@ export function VoiceoverPanel({
 	onGenerateAll,
 	onResetScript,
 	onSelectSegment,
+	polishStatuses,
+	hasOpenAiKey,
+	onPolishTone,
+	onPolishAll,
+	onPolishSegment,
+	onRevertSegment,
+	onOpenKeyDialog,
 }: VoiceoverPanelProps) {
 	const t = useScopedT("voiceover");
 	const audition = useClipAudition();
@@ -73,6 +93,7 @@ export function VoiceoverPanel({
 		const st = statuses[s.id]?.state;
 		return st === "synthesizing" || st === "queued";
 	});
+	const isPolishing = segments.some((s) => polishStatuses[s.id]?.state === "polishing");
 
 	return (
 		<div className="flex min-w-0 flex-col gap-3 px-1">
@@ -125,6 +146,53 @@ export function VoiceoverPanel({
 					/>
 				</div>
 			</div>
+
+			{/* AI polish (voiceover must be enabled) */}
+			{config.enabled ? (
+				<div className="space-y-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5">
+					<div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+						{t("polish.sectionLabel")}
+					</div>
+					<Select value={config.polishTone ?? DEFAULT_TONE_ID} onValueChange={onPolishTone}>
+						<SelectTrigger className="h-8 border-white/10 bg-black/20 text-xs">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{TONE_PRESETS.map((preset) => (
+								<SelectItem key={preset.id} value={preset.id} className="text-xs">
+									{t(preset.labelKey)}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					{hasOpenAiKey ? (
+						<Button
+							type="button"
+							size="sm"
+							disabled={segments.length === 0 || isPolishing}
+							onClick={onPolishAll}
+							className="h-8 w-full gap-1.5 text-xs"
+						>
+							{isPolishing ? (
+								<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							) : (
+								<Sparkles className="h-3.5 w-3.5" />
+							)}
+							{t("polish.polishScript")}
+						</Button>
+					) : (
+						<Button
+							type="button"
+							size="sm"
+							variant="secondary"
+							onClick={onOpenKeyDialog}
+							className="h-8 w-full gap-1.5 text-xs"
+						>
+							{t("polish.addKey")}
+						</Button>
+					)}
+				</div>
+			) : null}
 
 			{/* Generate all + reset */}
 			<div className="flex items-center gap-1.5">
@@ -184,6 +252,10 @@ export function VoiceoverPanel({
 								onAudition={() => clip && audition.play(clip, key)}
 								onStopAudition={audition.stop}
 								onSelect={() => onSelectSegment(segment.id)}
+								polishStatus={polishStatuses[segment.id] ?? { state: "idle" }}
+								canPolish={hasOpenAiKey}
+								onPolish={() => onPolishSegment(segment.id)}
+								onRevert={() => onRevertSegment(segment.id)}
 							/>
 						);
 					})}
