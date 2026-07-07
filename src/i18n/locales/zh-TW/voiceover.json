@@ -27,5 +27,28 @@
 	"trimmedTitle": "此片段的文字位於已裁剪區域,將不會播放",
 	"export": {
 		"noClipsWarning": "配音已啟用,但尚未產生任何片段——將匯出沒有旁白的影片。"
+	},
+	"polish": {
+		"sectionLabel": "AI 腳本潤飾",
+		"polishScript": "潤飾腳本",
+		"repolish": "潤飾",
+		"revert": "還原",
+		"failed": "潤飾失敗",
+		"addKey": "新增 OpenAI 金鑰",
+		"tone": {
+			"conversational": "對話式",
+			"professional": "專業",
+			"concise": "簡潔",
+			"enthusiastic": "熱情",
+			"tutorial": "教學"
+		},
+		"keyDialog": {
+			"title": "OpenAI API 金鑰",
+			"privacyNote": "您的片段文字(不含音訊或影片)將被傳送至 OpenAI 以潤飾腳本。金鑰安全地儲存在此裝置上。",
+			"placeholder": "sk-…",
+			"save": "儲存金鑰",
+			"clear": "移除金鑰",
+			"saveError": "無法儲存金鑰。"
+		}
 	}
 }

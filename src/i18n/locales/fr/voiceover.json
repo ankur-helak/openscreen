@@ -27,5 +27,28 @@
 	"trimmedTitle": "Les mots de ce clip se trouvent dans une région coupée et ne seront pas lus",
 	"export": {
 		"noClipsWarning": "La voix off est activée mais aucun segment n'est encore généré : la vidéo sera exportée sans narration."
+	},
+	"polish": {
+		"sectionLabel": "Peaufiner le script avec IA",
+		"polishScript": "Peaufiner le script",
+		"repolish": "Peaufiner",
+		"revert": "Annuler",
+		"failed": "Échec du peaufinage",
+		"addKey": "Ajouter une clé OpenAI",
+		"tone": {
+			"conversational": "Conversationnel",
+			"professional": "Professionnel",
+			"concise": "Concis",
+			"enthusiastic": "Enthousiaste",
+			"tutorial": "Tutoriel"
+		},
+		"keyDialog": {
+			"title": "Clé API OpenAI",
+			"privacyNote": "Le texte de votre segment (sans audio ni vidéo) est envoyé à OpenAI pour peaufiner le script. La clé est stockée en toute sécurité sur cet appareil.",
+			"placeholder": "sk-…",
+			"save": "Enregistrer la clé",
+			"clear": "Supprimer la clé",
+			"saveError": "Impossible d'enregistrer la clé."
+		}
 	}
 }

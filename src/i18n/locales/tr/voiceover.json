@@ -27,5 +27,28 @@
 	"trimmedTitle": "Bu klibin sözcükleri kırpılmış bir bölgeye denk geliyor ve çalınmayacak",
 	"export": {
 		"noClipsWarning": "Seslendirme açık ama henüz hiç segment üretilmedi — video, anlatım olmadan dışa aktarılacak."
+	},
+	"polish": {
+		"sectionLabel": "Yapay Zekâ metin iyileştirme",
+		"polishScript": "Metni iyileştir",
+		"repolish": "İyileştir",
+		"revert": "Geri al",
+		"failed": "İyileştirme başarısız",
+		"addKey": "OpenAI anahtarı ekle",
+		"tone": {
+			"conversational": "Sohbet tarzı",
+			"professional": "Profesyonel",
+			"concise": "Özlü",
+			"enthusiastic": "Coşkulu",
+			"tutorial": "Eğitici"
+		},
+		"keyDialog": {
+			"title": "OpenAI API anahtarı",
+			"privacyNote": "Segment metniniz (ses veya video olmadan) metni iyileştirmek için OpenAI'ya gönderilir. Anahtar bu cihazda güvenli bir şekilde saklanır.",
+			"placeholder": "sk-…",
+			"save": "Anahtarı kaydet",
+			"clear": "Anahtarı kaldır",
+			"saveError": "Anahtar kaydedilemedi."
+		}
 	}
 }

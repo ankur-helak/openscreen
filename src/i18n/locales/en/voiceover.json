@@ -27,5 +27,28 @@
 	"trimmedTitle": "This clip's words fall in a trimmed region and won't play",
 	"export": {
 		"noClipsWarning": "Voiceover is on but no segments are generated yet — exporting the video without narration."
+	},
+	"polish": {
+		"sectionLabel": "AI script polish",
+		"polishScript": "Polish script",
+		"repolish": "Polish",
+		"revert": "Revert",
+		"failed": "Polish failed",
+		"addKey": "Add OpenAI key",
+		"tone": {
+			"conversational": "Conversational",
+			"professional": "Professional",
+			"concise": "Concise",
+			"enthusiastic": "Enthusiastic",
+			"tutorial": "Tutorial"
+		},
+		"keyDialog": {
+			"title": "OpenAI API key",
+			"privacyNote": "Your segment text (no audio or video) is sent to OpenAI to polish the script. The key is stored securely on this device.",
+			"placeholder": "sk-…",
+			"save": "Save key",
+			"clear": "Remove key",
+			"saveError": "Could not save the key."
+		}
 	}
 }

@@ -27,5 +27,28 @@
 	"trimmedTitle": "كلمات هذا المقطع تقع في منطقة مقصوصة ولن تُشغَّل",
 	"export": {
 		"noClipsWarning": "التعليق الصوتي مُفعَّل لكن لم يتم توليد أي مقطع بعد — سيتم تصدير الفيديو بدون سرد."
+	},
+	"polish": {
+		"sectionLabel": "صقل النص بالذكاء الاصطناعي",
+		"polishScript": "صقل النص",
+		"repolish": "صقل",
+		"revert": "تراجع",
+		"failed": "فشل الصقل",
+		"addKey": "إضافة مفتاح OpenAI",
+		"tone": {
+			"conversational": "حواري",
+			"professional": "احترافي",
+			"concise": "مختصر",
+			"enthusiastic": "متحمس",
+			"tutorial": "تعليمي"
+		},
+		"keyDialog": {
+			"title": "مفتاح OpenAI API",
+			"privacyNote": "يُرسَل نص المقطع (بدون صوت أو فيديو) إلى OpenAI لصقل النص. يُحفَظ المفتاح بشكل آمن على هذا الجهاز.",
+			"placeholder": "sk-…",
+			"save": "حفظ المفتاح",
+			"clear": "إزالة المفتاح",
+			"saveError": "تعذر حفظ المفتاح."
+		}
 	}
 }

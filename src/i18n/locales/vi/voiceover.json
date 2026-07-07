@@ -27,5 +27,28 @@
 	"trimmedTitle": "Lời của đoạn này nằm trong vùng đã cắt và sẽ không được phát",
 	"export": {
 		"noClipsWarning": "Lồng tiếng đang bật nhưng chưa có đoạn nào được tạo — video sẽ được xuất mà không có lời tường thuật."
+	},
+	"polish": {
+		"sectionLabel": "Trau chuốt kịch bản bằng AI",
+		"polishScript": "Trau chuốt kịch bản",
+		"repolish": "Trau chuốt",
+		"revert": "Hoàn tác",
+		"failed": "Trau chuốt thất bại",
+		"addKey": "Thêm khóa OpenAI",
+		"tone": {
+			"conversational": "Đàm thoại",
+			"professional": "Chuyên nghiệp",
+			"concise": "Ngắn gọn",
+			"enthusiastic": "Nhiệt tình",
+			"tutorial": "Hướng dẫn"
+		},
+		"keyDialog": {
+			"title": "Khóa API OpenAI",
+			"privacyNote": "Văn bản đoạn của bạn (không có âm thanh hay video) được gửi đến OpenAI để trau chuốt kịch bản. Khóa được lưu trữ an toàn trên thiết bị này.",
+			"placeholder": "sk-…",
+			"save": "Lưu khóa",
+			"clear": "Xóa khóa",
+			"saveError": "Không thể lưu khóa."
+		}
 	}
 }

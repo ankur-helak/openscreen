@@ -27,5 +27,28 @@
 	"trimmedTitle": "このクリップの言葉はトリミング領域に含まれており、再生されません",
 	"export": {
 		"noClipsWarning": "ナレーションは有効ですが、まだセグメントが生成されていません。ナレーションなしで動画を書き出します。"
+	},
+	"polish": {
+		"sectionLabel": "AI台本磨き",
+		"polishScript": "台本を磨く",
+		"repolish": "磨く",
+		"revert": "元に戻す",
+		"failed": "磨きに失敗",
+		"addKey": "OpenAIキーを追加",
+		"tone": {
+			"conversational": "会話調",
+			"professional": "プロフェッショナル",
+			"concise": "簡潔",
+			"enthusiastic": "熱心",
+			"tutorial": "チュートリアル"
+		},
+		"keyDialog": {
+			"title": "OpenAI APIキー",
+			"privacyNote": "セグメントのテキスト（音声や動画は含まない）がOpenAIに送信され、台本を磨きます。キーはこの端末に安全に保存されます。",
+			"placeholder": "sk-…",
+			"save": "キーを保存",
+			"clear": "キーを削除",
+			"saveError": "キーを保存できませんでした。"
+		}
 	}
 }

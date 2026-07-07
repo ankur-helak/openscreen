@@ -27,5 +27,28 @@
 	"trimmedTitle": "As palavras deste clipe estão em uma região cortada e não serão reproduzidas",
 	"export": {
 		"noClipsWarning": "A narração está ativada, mas nenhum segmento foi gerado ainda — o vídeo será exportado sem narração."
+	},
+	"polish": {
+		"sectionLabel": "Refinar roteiro com IA",
+		"polishScript": "Refinar roteiro",
+		"repolish": "Refinar",
+		"revert": "Reverter",
+		"failed": "Falha ao refinar",
+		"addKey": "Adicionar chave OpenAI",
+		"tone": {
+			"conversational": "Conversacional",
+			"professional": "Profissional",
+			"concise": "Conciso",
+			"enthusiastic": "Entusiasmado",
+			"tutorial": "Tutorial"
+		},
+		"keyDialog": {
+			"title": "Chave de API OpenAI",
+			"privacyNote": "O texto do seu segmento (sem áudio ou vídeo) é enviado ao OpenAI para refinar o roteiro. A chave é armazenada com segurança neste dispositivo.",
+			"placeholder": "sk-…",
+			"save": "Salvar chave",
+			"clear": "Remover chave",
+			"saveError": "Não foi possível salvar a chave."
+		}
 	}
 }

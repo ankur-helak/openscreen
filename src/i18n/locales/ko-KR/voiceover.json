@@ -27,5 +27,28 @@
 	"trimmedTitle": "이 클립의 말은 잘린 구간에 있어 재생되지 않습니다",
 	"export": {
 		"noClipsWarning": "내레이션이 켜져 있지만 아직 생성된 세그먼트가 없습니다 — 내레이션 없이 영상을 내보냅니다."
+	},
+	"polish": {
+		"sectionLabel": "AI 대본 다듬기",
+		"polishScript": "대본 다듬기",
+		"repolish": "다듬기",
+		"revert": "되돌리기",
+		"failed": "다듬기 실패",
+		"addKey": "OpenAI 키 추가",
+		"tone": {
+			"conversational": "대화형",
+			"professional": "전문적",
+			"concise": "간결",
+			"enthusiastic": "열정적",
+			"tutorial": "튜토리얼"
+		},
+		"keyDialog": {
+			"title": "OpenAI API 키",
+			"privacyNote": "세그먼트 텍스트(오디오나 비디오 제외)가 대본을 다듬기 위해 OpenAI로 전송됩니다. 키는 이 기기에 안전하게 저장됩니다.",
+			"placeholder": "sk-…",
+			"save": "키 저장",
+			"clear": "키 제거",
+			"saveError": "키를 저장할 수 없습니다."
+		}
 	}
 }
