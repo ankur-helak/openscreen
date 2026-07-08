@@ -16,7 +16,7 @@
 
 <p align="center"><strong>OpenScreen is your free, open-source alternative to Screen Studio.</strong></p>
 
-## ✨ What's new in this fork (v1.8.0)
+## ✨ What's new in this fork (v1.8.1)
 
 This fork builds on upstream OpenScreen with on-device narration + captioning, cloud AI script polishing, and macOS packaging fixes:
 
